@@ -1,0 +1,90 @@
+{% extends "core/admin_base.html" %}
+{% block title %}{{ classroom.name }} – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classrooms / {{ classroom.name }}{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <div class="flex items-center gap-3" style="margin-bottom:6px">
+      <h1 class="page-title" style="margin-bottom:0">{{ classroom.name }}</h1>
+      <span class="badge badge-{% if classroom.status == 'active' %}active{% elif classroom.status == 'paused' %}submitted{% else %}draft{% endif %}">{{ classroom.get_status_display }}</span>
+      <span class="badge badge-{{ classroom.tutor.mode }}">{{ classroom.tutor.get_mode_display }}</span>
+    </div>
+    <p class="page-sub">
+      {{ classroom.course.name }} · Tutor: <a href="{% url 'admin_tutor_detail' classroom.tutor.pk %}" style="color:var(--accent2)">{{ classroom.tutor.name }}</a>
+      · Started {{ classroom.start_date|date:"M d, Y" }}{% if classroom.end_date %} · Ends {{ classroom.end_date|date:"M d, Y" }}{% endif %}
+    </p>
+  </div>
+  <div style="text-align:right">
+    <div class="text-muted text-sm">Join Code</div>
+    <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;letter-spacing:.15em;color:var(--accent2)">{{ classroom.join_code }}</div>
+  </div>
+</div>
+
+<div class="stat-grid" style="margin-bottom:20px">
+  <div class="stat-card" style="--glow-color:var(--accent)"><div class="stat-label">Students</div><div class="stat-value">{{ students.count }}</div></div>
+  <div class="stat-card" style="--glow-color:var(--accent2)"><div class="stat-label">Sessions</div><div class="stat-value">{{ sessions.count }}</div></div>
+  <div class="stat-card" style="--glow-color:var(--accent3)"><div class="stat-label">Week</div><div class="stat-value">{{ classroom.current_week }}</div></div>
+  <div class="stat-card" style="--glow-color:var(--online)"><div class="stat-label">Attendance Rate</div><div class="stat-value">{{ classroom.attendance_rate }}%</div></div>
+</div>
+
+{% if classroom.end_date %}
+<div style="margin-bottom:20px">
+  <div class="flex justify-between text-sm" style="margin-bottom:6px">
+    <span class="text-muted">Course Progress</span><span style="font-weight:600">{{ classroom.progress_percent }}%</span>
+  </div>
+  <div class="progress-bar" style="height:10px"><div class="progress-bar-fill" style="width:{{ classroom.progress_percent }}%"></div></div>
+</div>
+{% endif %}
+
+<div class="grid-2 gap-4">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Sessions ({{ sessions.count }})</div></div>
+    {% if sessions %}
+    <div class="table-wrap" style="border:none">
+      <table>
+        <thead><tr><th>Date</th><th>Topic</th><th>Attendance</th></tr></thead>
+        <tbody>
+        {% for session in sessions %}
+        {% with s=session.attendance_summary %}
+        <tr>
+          <td><div style="font-weight:600;font-size:.82rem">{{ session.date|date:"M d, Y" }}</div>
+              {% if session.start_time %}<div class="text-muted text-sm">{{ session.start_time|time:"H:i" }}{% if session.end_time %} – {{ session.end_time|time:"H:i" }}{% endif %}</div>{% endif %}</td>
+          <td>{{ session.topic.title|default:"—" }}</td>
+          <td>{% if s.total > 0 %}<div class="text-sm" style="margin-bottom:3px">{{ s.present }}/{{ s.total }}</div>
+              <div class="progress-bar"><div class="progress-bar-fill" style="width:{% widthratio s.present s.total 100 %}%"></div></div>
+              {% else %}<span class="text-muted text-sm">Not taken</span>{% endif %}</td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="icon">◻</div><p>No sessions yet.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Student Attendance</div></div>
+    {% if student_stats %}
+    {% for stat in student_stats %}
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="flex justify-between items-center" style="margin-bottom:5px">
+        <div class="flex items-center gap-2">
+          <div class="user-avatar" style="width:28px;height:28px;font-size:.72rem">{{ stat.student.name|slice:":1"|upper }}</div>
+          <div>
+            <div style="font-size:.875rem;font-weight:500">{{ stat.student.name }}</div>
+            <div class="text-muted text-sm">{{ stat.present }}/{{ stat.total }} · {{ stat.rate }}%</div>
+          </div>
+        </div>
+        <span class="badge badge-{{ stat.student.mode }}">{{ stat.student.get_mode_display }}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ stat.rate }}%"></div></div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="icon">◉</div><p>No students enrolled.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

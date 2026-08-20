@@ -1,0 +1,132 @@
+{% extends "core/student_base.html" %}
+{% block title %}{{ classroom.name }} - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}{{ classroom.name }}{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">{{ classroom.name }}</h1>
+    <p class="page-sub">
+      {{ classroom.course.name }} ·
+      Tutor: <strong>{{ classroom.tutor.name }}</strong> ·
+      Started {{ classroom.start_date|date:"M d, Y" }}
+    </p>
+  </div>
+  <span class="tag" style="font-size:1rem;letter-spacing:.12em;padding:6px 14px">{{ classroom.join_code }}</span>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid" style="margin-bottom:20px">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">Sessions</div>
+    <div class="stat-value">{{ session_data|length }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--online)">
+    <div class="stat-label">Present</div>
+    <div class="stat-value" style="-webkit-text-fill-color:var(--accent)">{{ present }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--warn)">
+    <div class="stat-label">Absent</div>
+    <div class="stat-value" style="-webkit-text-fill-color:var(--warn)">{{ total|add:"-"|add:present }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Attendance Rate</div>
+    <div class="stat-value">{{ rate }}%</div>
+  </div>
+</div>
+
+{% if classroom.end_date %}
+<div style="margin-bottom:20px">
+  <div class="flex justify-between text-sm" style="margin-bottom:6px">
+    <span class="text-muted">Course Progress — Week {{ classroom.current_week }} of {{ classroom.course.duration_weeks }}</span>
+    <span style="font-weight:600">{{ classroom.progress_percent }}%</span>
+  </div>
+  <div class="progress-bar" style="height:10px">
+    <div class="progress-bar-fill" style="width:{{ classroom.progress_percent }}%"></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid-2 gap-4">
+
+  <!-- Session feed -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Sessions</div></div>
+    {% if session_data %}
+    {% for item in session_data %}
+    <div style="padding:14px 0;border-bottom:1px solid var(--border)">
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-weight:600;font-size:.875rem">
+            {% if item.session.topic %}{{ item.session.topic.title }}{% else %}Session{% endif %}
+          </div>
+          <div class="text-muted text-sm">
+            {{ item.session.date|date:"D, M d Y" }}
+            {% if item.session.start_time %} · {{ item.session.start_time|time:"H:i" }}{% if item.session.end_time %} – {{ item.session.end_time|time:"H:i" }}{% endif %}{% endif %}
+          </div>
+          {% if item.session.description %}
+          <div class="text-muted text-sm" style="margin-top:3px">{{ item.session.description }}</div>
+          {% endif %}
+        </div>
+        <div>
+          {% if item.att %}
+          <span class="badge badge-{{ item.att.attendance_status|lower }}">{{ item.att.attendance_status }}</span>
+          {% else %}
+          <span class="badge badge-draft">No record</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if item.att and item.att.note %}
+      <div style="margin-top:6px;font-size:.78rem;color:var(--muted);padding:6px 10px;background:var(--surface2);border-radius:6px">
+        Note: {{ item.att.note }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="icon">◻</div><p>No sessions posted yet.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Topics covered -->
+  <!-- Topics covered — grouped by module -->
+<div class="card">
+  <div class="card-header"><div class="card-title">Topics Covered</div></div>
+  {% if topics_covered %}
+  {% regroup topics_covered by module as module_groups %}
+  {% for group in module_groups %}
+  <div style="margin-bottom:14px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;
+                color:var(--accent2);margin-bottom:8px;padding-bottom:6px;
+                border-bottom:1px solid var(--border)">
+      {% if group.grouper %}{{ group.grouper.name }}{% else %}General{% endif %}
+    </div>
+    {% for topic in group.list %}
+    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-2">
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:#000;flex-shrink:0">
+          {{ topic.week }}
+        </div>
+        <div>
+          <div style="font-size:.875rem;font-weight:500">{{ topic.title }}</div>
+          <div class="text-muted text-sm">Week {{ topic.week }} · Day {{ topic.day }}</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="empty-state"><div class="icon">📖</div><p>No topics covered yet.</p></div>
+  {% endif %}
+
+  {% if classroom.description %}
+  <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)">
+    <div class="text-muted text-sm" style="margin-bottom:4px;font-family:'Syne',sans-serif;font-weight:600;text-transform:uppercase;font-size:.7rem;letter-spacing:.08em">About this classroom</div>
+    <p style="font-size:.875rem">{{ classroom.description }}</p>
+  </div>
+  {% endif %}
+</div>
+
+</div>
+{% endblock %}

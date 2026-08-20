@@ -1,0 +1,88 @@
+{% extends "core/student_base.html" %}
+{% block title %}My Profile – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Profile{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <h1 class="page-title">My Profile</h1>
+</div>
+
+<div class="grid-2 gap-4">
+
+  <!-- Profile info -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:20px">Account Info</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+      <div class="user-avatar" style="width:56px;height:56px;font-size:1.4rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
+        {{ student.name|slice:":1"|upper }}
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700">{{ student.name }}</div>
+        <div class="text-muted text-sm">{{ student.email|default:"No email set" }}</div>
+        <div style="margin-top:4px;display:flex;gap:6px">
+          <span class="badge badge-{{ student.mode }}">{{ student.get_mode_display }}</span>
+          <span class="badge {% if student.active %}badge-active{% else %}badge-inactive{% endif %}">
+            {% if student.active %}Active{% else %}Inactive{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <table style="border:none;width:100%"><tbody>
+      <tr><td class="text-muted text-sm" style="padding:7px 0;width:130px">Phone</td><td>{{ student.phone|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Tutor</td><td>{{ student.tutor.name|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Enrolled</td><td>{{ student.enrolled_at|date:"M d, Y" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Current Week</td><td>Week {{ student.current_week }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Courses</td>
+          <td>{% for c in student.courses.all %}<span class="tag">{{ c.name }}</span> {% empty %}—{% endfor %}</td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <!-- Edit form -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:20px">Update Info</div>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <div style="color:var(--warn);font-size:.8rem;margin-top:3px">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </div>
+
+</div>
+
+<!-- Classrooms summary -->
+<div class="card" style="margin-top:16px">
+  <div class="card-header"><div class="card-title">My Classrooms</div></div>
+  {% if student.classrooms.all %}
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead><tr><th>Classroom</th><th>Course</th><th>Tutor</th><th>Status</th><th>Code</th><th></th></tr></thead>
+      <tbody>
+      {% for cr in student.classrooms.all %}
+      <tr>
+        <td style="font-weight:600">{{ cr.name }}</td>
+        <td>{{ cr.course.name }}</td>
+        <td>{{ cr.tutor.name }}</td>
+        <td><span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">{{ cr.get_status_display }}</span></td>
+        <td><span class="tag" style="letter-spacing:.08em">{{ cr.join_code }}</span></td>
+        <td><a href="{% url 'student_classroom' cr.pk %}" class="btn btn-secondary btn-sm">Open</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">◈</div><p>No classrooms yet.</p></div>
+  {% endif %}
+</div>
+
+{% endblock %}

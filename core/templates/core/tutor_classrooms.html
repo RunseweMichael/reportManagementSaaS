@@ -1,0 +1,63 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Classrooms – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classrooms{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">My Classrooms</h1>
+    <p class="page-sub">Each classroom is a cohort of students taking a course together</p>
+  </div>
+  <a href="{% url 'tutor_classroom_create' %}" class="btn btn-primary">+ New Classroom</a>
+</div>
+
+<div class="filter-bar">
+  <a href="{% url 'tutor_classrooms' %}"    class="{% if not status_filter %}active{% endif %}">All</a>
+  <a href="?status=active"    class="{% if status_filter == 'active' %}active{% endif %}">Active</a>
+  <a href="?status=paused"    class="{% if status_filter == 'paused' %}active{% endif %}">Paused</a>
+  <a href="?status=completed" class="{% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+</div>
+
+{% if classrooms %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+  {% for cr in classrooms %}
+  <div class="card" style="border-color:{% if cr.status == 'active' %}rgba(110,231,183,.3){% elif cr.status == 'paused' %}rgba(251,146,60,.3){% else %}rgba(100,116,139,.25){% endif %}">
+    <div class="flex justify-between items-center" style="margin-bottom:12px">
+      <span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">
+        {{ cr.get_status_display }}
+      </span>
+      <span class="tag" style="letter-spacing:.1em">{{ cr.join_code }}</span>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:3px">{{ cr.name }}</div>
+    <div class="text-muted text-sm" style="margin-bottom:12px">{{ cr.course.name }}</div>
+    <div class="flex gap-3 text-sm text-muted" style="margin-bottom:12px;flex-wrap:wrap">
+      <span>👥 {{ cr.student_count }} student{{ cr.student_count|pluralize }}</span>
+      <span>📋 {{ cr.session_count }} session{{ cr.session_count|pluralize }}</span>
+      <span>📍 Week {{ cr.current_week }}</span>
+    </div>
+    {% if cr.end_date %}
+    <div style="margin-bottom:12px">
+      <div class="flex justify-between text-sm text-muted" style="margin-bottom:4px">
+        <span>Progress</span><span>{{ cr.progress_percent }}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ cr.progress_percent }}%"></div></div>
+    </div>
+    {% endif %}
+    <div class="text-muted text-sm" style="margin-bottom:14px">
+      Started {{ cr.start_date|date:"M d, Y" }}{% if cr.end_date %} · Ends {{ cr.end_date|date:"M d, Y" }}{% endif %}
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'tutor_classroom_detail' cr.pk %}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">Open</a>
+      <a href="{% url 'tutor_classroom_edit' cr.pk %}"   class="btn btn-secondary btn-sm">Edit</a>
+      <a href="{% url 'tutor_classroom_delete' cr.pk %}" class="btn btn-danger btn-sm">Del</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state card">
+  <div class="icon">◈</div>
+  <p>No classrooms yet. Create one to start grouping students into cohorts.</p>
+  <a href="{% url 'tutor_classroom_create' %}" class="btn btn-primary" style="margin-top:16px">+ Create First Classroom</a>
+</div>
+{% endif %}
+{% endblock %}

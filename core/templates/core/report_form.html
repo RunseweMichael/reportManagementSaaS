@@ -1,0 +1,43 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Weekly Report - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Reports / Submit{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">Weekly Report</h1><p class="page-sub">{{ report.week_start|date:"M d" }} – {{ report.week_end|date:"M d, Y" }}</p></div>
+</div>
+<div style="max-width:700px">
+  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Classes Held</div><div class="stat-value">{{ report.classes_held }}</div></div>
+    <div class="stat-card"><div class="stat-label">Students Present</div><div class="stat-value">{{ report.students_attended }}</div></div>
+    <div class="stat-card"><div class="stat-label">Status</div><div style="margin-top:6px"><span class="badge badge-{{ report.status }}">{{ report.get_status_display }}</span></div></div>
+  </div>
+  {% if report.admin_feedback %}
+  <div class="card" style="margin-bottom:20px;border-color:rgba(129,140,248,.3)">
+    <div class="card-title mb-4" style="color:var(--accent2)">Admin Feedback</div>
+    <p style="font-size:.9rem">{{ report.admin_feedback }}</p>
+  </div>
+  {% endif %}
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Topics Covered</label>
+        {{ form.topics_covered }}
+        {% if form.topics_covered.errors %}<div style="color:var(--warn);font-size:.8rem;margin-top:4px">{{ form.topics_covered.errors }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Challenges / Blockers</label>
+        {{ form.challenges }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plan for Next Week</label>
+        {{ form.plan_next_week }}
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Submit Report</button>
+        <a href="{% url 'tutor_reports' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

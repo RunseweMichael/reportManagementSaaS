@@ -1,0 +1,188 @@
+{% extends "core/admin_base.html" %}
+{% block title %}{{ student.name }} - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Students / {{ student.name }}{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <div class="flex items-center gap-3" style="margin-bottom:6px">
+      <div class="user-avatar" style="width:44px;height:44px;font-size:1.1rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
+        {{ student.name|slice:":1"|upper }}
+      </div>
+      <div>
+        <h1 class="page-title" style="margin-bottom:0">{{ student.name }}</h1>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <span class="badge badge-{{ student.mode }}">{{ student.get_mode_display }}</span>
+          <span class="badge {% if student.active %}badge-active{% else %}badge-inactive{% endif %}">
+            {% if student.active %}Active{% else %}Inactive{% endif %}
+          </span>
+          {% if student.tutor %}
+          <span class="badge badge-{{ student.tutor.mode }}" style="background:rgba(129,140,248,.15);color:var(--accent2);border-color:rgba(129,140,248,.3)">
+            {{ student.tutor.name }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <p class="page-sub">Enrolled {{ student.enrolled_at|date:"M d, Y" }} · Week {{ student.current_week }}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'admin_student_edit' student.pk %}"   class="btn btn-secondary">Edit</a>
+    <a href="{% url 'admin_student_delete' student.pk %}" class="btn btn-danger">Delete</a>
+    <a href="{% url 'admin_student_report' student.pk %}"
+   class="btn btn-primary btn-sm"
+   target="_blank">📄 Generate Report</a>
+  </div>
+</div>
+
+
+<!-- Stats -->
+<div class="stat-grid" style="margin-bottom:20px">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">Total Sessions</div><div class="stat-value">{{ total_att }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--online)">
+    <div class="stat-label">Present</div>
+    <div class="stat-value" style="-webkit-text-fill-color:var(--accent)">{{ present_att }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--warn)">
+    <div class="stat-label">Absent</div>
+    <div class="stat-value" style="-webkit-text-fill-color:var(--warn)">{{ absent_att }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Attendance Rate</div><div class="stat-value">{{ att_rate }}%</div>
+  </div>
+</div>
+
+<!-- Attendance bar -->
+<div class="card" style="margin-bottom:20px">
+  <div class="flex justify-between text-sm" style="margin-bottom:8px">
+    <span style="font-family:'Syne',sans-serif;font-weight:700">Overall Attendance</span>
+    <span style="color:{% if att_rate >= 80 %}var(--accent){% elif att_rate >= 60 %}var(--accent3){% else %}var(--warn){% endif %};font-weight:600">
+      {{ att_rate }}% — {% if att_rate >= 80 %}Excellent{% elif att_rate >= 60 %}Good{% else %}Needs Improvement{% endif %}
+    </span>
+  </div>
+  <div class="progress-bar" style="height:10px">
+    <div class="progress-bar-fill" style="width:{{ att_rate }}%"></div>
+  </div>
+</div>
+
+<div class="grid-2 gap-4" style="margin-bottom:20px">
+
+  <!-- Info -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px">Student Info</div>
+    <table style="border:none;width:100%"><tbody>
+      <tr><td class="text-muted text-sm" style="padding:7px 0;width:110px">Email</td><td>{{ student.email|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Phone</td><td>{{ student.phone|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Tutor</td>
+          <td>{% if student.tutor %}<a href="{% url 'admin_tutor_detail' student.tutor.pk %}" style="color:var(--accent2)">{{ student.tutor.name }}</a>{% else %}—{% endif %}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Courses</td>
+          <td>{% for c in student.courses.all %}<span class="tag">{{ c.name }}</span> {% empty %}—{% endfor %}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:7px 0">Notes</td><td>{{ student.notes|default:"—" }}</td></tr>
+    </tbody></table>
+  </div>
+
+  <!-- Classroom breakdown -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px">Classroom Breakdown</div>
+    {% if classroom_stats %}
+    {% for stat in classroom_stats %}
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="flex justify-between items-center" style="margin-bottom:5px">
+        <div>
+          <a href="{% url 'admin_classroom_detail' stat.classroom.pk %}" style="font-weight:600;font-size:.875rem;color:var(--accent)">
+            {{ stat.classroom.name }}
+          </a>
+          <div class="text-muted text-sm">{{ stat.classroom.course.name }} · {{ stat.sessions }} sessions · {{ stat.classroom.tutor.name }}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700;font-size:.95rem">{{ stat.rate }}%</div>
+          <div class="text-muted text-sm">{{ stat.present }}/{{ stat.total }}</div>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" style="width:{{ stat.rate }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="icon">◈</div><p>No classrooms yet.</p></div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Session history
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header"><div class="card-title">Session History ({{ sessions.count }})</div></div>
+  {% if sessions %}
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead><tr><th>Date</th><th>Classroom</th><th>Tutor</th><th>Topic</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+      {% for session in sessions %}
+      <tr>
+        <td style="white-space:nowrap">
+          <div style="font-weight:600">{{ session.date|date:"M d, Y" }}</div>
+          {% if session.start_time %}<div class="text-muted text-sm">{{ session.start_time|time:"H:i" }}</div>{% endif %}
+        </td>
+        <td>
+          {% if session.classroom %}
+          <a href="{% url 'admin_classroom_detail' session.classroom.pk %}" style="color:var(--accent2)">{{ session.classroom.name }}</a>
+          {% else %}<span class="text-muted">Standalone</span>{% endif %}
+        </td>
+        <td>{{ session.tutor.name }}</td>
+        <td>{{ session.topic.title|default:"—" }}</td>
+        <td>
+          {% for rec in session.attendance_set.all %}
+            {% if rec.student_id == student.pk %}
+            <span class="badge badge-{{ rec.attendance_status|lower }}">{{ rec.attendance_status }}</span>
+            {% endif %}
+          {% empty %}
+          <span class="badge badge-draft">No record</span>
+          {% endfor %}
+        </td>
+        <td class="text-muted text-sm">
+          {% for rec in session.attendance_set.all %}{% if rec.student_id == student.pk %}{{ rec.note|default:"—" }}{% endif %}{% endfor %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">◻</div><p>No sessions yet.</p></div>
+  {% endif %}
+</div> -->
+
+<!-- Full attendance log -->
+<div class="card">
+  <div class="card-header"><div class="card-title">Full Attendance Log</div></div>
+  {% if attendance_records %}
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead><tr><th>Date</th><th>Topic / Session</th><th>Classroom</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+      {% for item in attendance_with_classroom %}
+{% with a=item.record cr=item.display_classroom %}
+<tr>
+  <td style="white-space:nowrap">{{ a.date|date:"M d, Y" }}</td>
+  <td>{{ a.class_instance.topic.title|default:a.class_instance.course.name }}</td>
+  <td>
+    {% if cr %}{{ cr.name }}{% else %}—{% endif %}
+  </td>
+  <td><span class="badge badge-{{ a.attendance_status|lower }}">{{ a.attendance_status }}</span></td>
+  <td class="text-muted text-sm">{{ a.note|default:"—" }}</td>
+</tr>
+{% endwith %}
+{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">▤</div><p>No attendance records yet.</p></div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Reports – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Weekly Reports{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">Weekly Reports</h1><p class="page-sub">Submit and track your weekly reports</p></div>
+  <a href="{% url 'tutor_report_create' %}" class="btn btn-primary">+ This Week's Report</a>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Week</th><th>Classes</th><th>Students</th><th>Topics</th><th>Status</th><th>Admin Feedback</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for r in reports %}
+    <tr>
+      <td><div style="font-weight:600">{{ r.week_start|date:"M d" }} – {{ r.week_end|date:"M d, Y" }}</div><div class="text-muted text-sm">Submitted {{ r.updated_at|date:"M d" }}</div></td>
+      <td>{{ r.classes_held }}</td>
+      <td>{{ r.students_attended }}</td>
+      <td class="text-sm">{{ r.topics_covered|truncatechars:50|default:"—" }}</td>
+      <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+      <td class="text-sm">{{ r.admin_feedback|truncatechars:60|default:"—" }}</td>
+      <td><a href="{% url 'tutor_report_edit' r.pk %}" class="btn btn-secondary btn-sm">Edit</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="text-muted" style="text-align:center;padding:32px">No reports submitted yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

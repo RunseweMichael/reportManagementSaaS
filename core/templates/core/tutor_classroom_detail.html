@@ -1,0 +1,116 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}{{ classroom.name }} – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classrooms / {{ classroom.name }}{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <div class="flex items-center gap-3" style="margin-bottom:6px">
+      <h1 class="page-title" style="margin-bottom:0">{{ classroom.name }}</h1>
+      <span class="badge badge-{% if classroom.status == 'active' %}active{% elif classroom.status == 'paused' %}submitted{% else %}draft{% endif %}">{{ classroom.get_status_display }}</span>
+    </div>
+    <p class="page-sub">{{ classroom.course.name }} · Started {{ classroom.start_date|date:"M d, Y" }}{% if classroom.end_date %} · Ends {{ classroom.end_date|date:"M d, Y" }}{% endif %}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'tutor_classroom_session_create' classroom.pk %}" class="btn btn-primary">+ Post Session</a>
+    <a href="{% url 'tutor_classroom_edit' classroom.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'tutor_classroom_delete' classroom.pk %}" class="btn btn-danger">Delete</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid" style="margin-bottom:20px">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">Students</div><div class="stat-value">{{ students.count }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Sessions</div><div class="stat-value">{{ sessions.count }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent3)">
+    <div class="stat-label">Current Week</div><div class="stat-value">{{ classroom.current_week }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--online)">
+    <div class="stat-label">Attendance Rate</div><div class="stat-value">{{ classroom.attendance_rate }}%</div>
+  </div>
+</div>
+
+<!-- Join code banner -->
+<div class="card" style="margin-bottom:20px;border-color:rgba(129,140,248,.3);background:linear-gradient(135deg,rgba(129,140,248,.08),rgba(110,231,183,.04))">
+  <div class="flex justify-between items-center">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:4px">Student Join Code</div>
+      <p class="text-muted text-sm">Students use this code to identify their classroom</p>
+    </div>
+    <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:.2em;color:var(--accent2)">{{ classroom.join_code }}</div>
+  </div>
+</div>
+
+{% if classroom.end_date %}
+<div style="margin-bottom:20px">
+  <div class="flex justify-between text-sm" style="margin-bottom:6px">
+    <span class="text-muted">Course Progress</span><span style="font-weight:600">{{ classroom.progress_percent }}%</span>
+  </div>
+  <div class="progress-bar" style="height:10px">
+    <div class="progress-bar-fill" style="width:{{ classroom.progress_percent }}%"></div>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid-2 gap-4">
+
+  <!-- Sessions -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Sessions ({{ sessions.count }})</div>
+      <a href="{% url 'tutor_classroom_session_create' classroom.pk %}" class="btn btn-primary btn-sm">+ Post</a>
+    </div>
+    {% if sessions %}
+    {% for session in sessions %}
+    <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div class="flex justify-between items-center">
+        <div>
+          <div style="font-weight:600;font-size:.875rem">
+            {% if session.topic %}{{ session.topic.title }}{% else %}Session — {{ session.date|date:"M d" }}{% endif %}
+          </div>
+          <div class="text-muted text-sm">
+            {{ session.date|date:"D, M d Y" }}{% if session.start_time %} · {{ session.start_time|time:"H:i" }}{% endif %}
+            {% with s=session.attendance_summary %}· {{ s.present }}/{{ s.total }} present{% endwith %}
+          </div>
+        </div>
+        <a href="{% url 'tutor_classroom_session_attendance' classroom.pk session.pk %}" class="btn btn-secondary btn-sm">Attendance</a>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="icon">◻</div><p>No sessions posted yet.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Students -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">Students ({{ students.count }})</div></div>
+    {% if student_stats %}
+    {% for stat in student_stats %}
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="flex justify-between items-center" style="margin-bottom:5px">
+        <div class="flex items-center gap-2">
+          <div class="user-avatar" style="width:28px;height:28px;font-size:.72rem">{{ stat.student.name|slice:":1"|upper }}</div>
+          <div>
+            <div style="font-size:.875rem;font-weight:500">{{ stat.student.name }}</div>
+            <div class="text-muted text-sm">{{ stat.present }}/{{ stat.total }} sessions · {{ stat.rate }}%</div>
+          </div>
+        </div>
+        <span class="badge badge-{{ stat.student.mode }}">{{ stat.student.get_mode_display }}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" style="width:{{ stat.rate }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="icon">◉</div><p>No students enrolled.</p></div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

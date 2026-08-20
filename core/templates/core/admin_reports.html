@@ -1,0 +1,36 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Reports - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Weekly Reports{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">Weekly Reports</h1><p class="page-sub">Review and give feedback on tutor reports</p></div>
+</div>
+<div class="filter-bar">
+  <a href="{% url 'admin_reports' %}" class="{% if not status_filter and not mode_filter %}active{% endif %}">All</a>
+  <a href="?status=submitted" class="{% if status_filter == 'submitted' %}active{% endif %}">Pending Review</a>
+  <a href="?status=reviewed" class="{% if status_filter == 'reviewed' %}active{% endif %}">Reviewed</a>
+  <a href="?mode=online" class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
+  <a href="?mode=physical" class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Tutor</th><th>Mode</th><th>Week</th><th>Classes</th><th>Students</th><th>Topics</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for r in reports %}
+    <tr>
+      <td><div style="font-weight:600">{{ r.tutor.name }}</div></td>
+      <td><span class="badge badge-{{ r.tutor.mode }}">{{ r.tutor.get_mode_display }}</span></td>
+      <td>{{ r.week_start|date:"M d" }} – {{ r.week_end|date:"M d, Y" }}</td>
+      <td>{{ r.classes_held }}</td>
+      <td>{{ r.students_attended }}</td>
+      <td class="text-sm">{{ r.topics_covered|truncatechars:40|default:"—" }}</td>
+      <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+      <td><a href="{% url 'admin_report_detail' r.pk %}" class="btn btn-primary btn-sm">Review</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" class="text-muted" style="text-align:center;padding:32px">No reports found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

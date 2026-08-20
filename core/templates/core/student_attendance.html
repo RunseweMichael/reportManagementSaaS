@@ -1,0 +1,84 @@
+{% extends "core/student_base.html" %}
+{% block title %}My Attendance - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Attendance{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">My Attendance</h1>
+    <p class="page-sub">Full attendance history across all classrooms</p>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="stat-grid" style="margin-bottom:24px">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">Total Sessions</div>
+    <div class="stat-value">{{ total }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--online)">
+    <div class="stat-label">Present</div>
+    <div class="stat-value" style="-webkit-text-fill-color:var(--accent)">{{ present }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--warn)">
+    <div class="stat-label">Absent</div>
+    <div class="stat-value" style="-webkit-text-fill-color:var(--warn)">{{ absent }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Rate</div>
+    <div class="stat-value">{{ rate }}%</div>
+  </div>
+</div>
+
+<!-- Rate bar -->
+<div class="card" style="margin-bottom:20px">
+  <div class="flex justify-between text-sm" style="margin-bottom:8px">
+    <span style="font-family:'Syne',sans-serif;font-weight:700">Overall Attendance Rate</span>
+    <span style="font-weight:600">{{ present }} / {{ total }} sessions</span>
+  </div>
+  <div class="progress-bar" style="height:12px">
+    <div class="progress-bar-fill" style="width:{{ rate }}%"></div>
+  </div>
+  <div class="flex justify-between text-sm text-muted" style="margin-top:6px">
+    <span>0%</span>
+    <span style="color:{% if rate >= 80 %}var(--accent){% elif rate >= 60 %}var(--accent3){% else %}var(--warn){% endif %};font-weight:600">
+      {{ rate }}% — {% if rate >= 80 %}Excellent{% elif rate >= 60 %}Good{% else %}Needs Improvement{% endif %}
+    </span>
+    <span>100%</span>
+  </div>
+</div>
+
+<!-- Records table -->
+<div class="card">
+  <div class="card-header"><div class="card-title">All Records</div></div>
+  {% if records %}
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Classroom</th><th>Topic / Session</th><th>Status</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+      {% for a in records %}
+      <tr>
+        <td style="white-space:nowrap">{{ a.date|date:"M d, Y" }}</td>
+        <td>
+          {% if a.class_instance.classroom %}
+          <a href="{% url 'student_classroom' a.class_instance.classroom.pk %}" style="color:var(--accent2)">
+            {{ a.class_instance.classroom.name }}
+          </a>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ a.class_instance.topic.title|default:a.class_instance.course.name }}</td>
+        <td><span class="badge badge-{{ a.attendance_status|lower }}">{{ a.attendance_status }}</span></td>
+        <td class="text-muted text-sm">{{ a.note|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">▤</div><p>No attendance records yet.</p></div>
+  {% endif %}
+</div>
+
+{% endblock %}

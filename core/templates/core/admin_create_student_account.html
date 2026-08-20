@@ -1,0 +1,68 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Create Login - {{ student.name }} - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Students / Create Login Account{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Create Login Account</h1>
+    <p class="page-sub">Set up portal access for {{ student.name }}</p>
+  </div>
+  <a href="{% url 'admin_students' %}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div style="max-width:560px">
+  <!-- Student summary -->
+  <div class="card" style="margin-bottom:20px;border-color:rgba(129,140,248,.3)">
+    <div class="flex items-center gap-3">
+      <div class="user-avatar" style="width:44px;height:44px;font-size:1.1rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
+        {{ student.name|slice:":1"|upper }}
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem">{{ student.name }}</div>
+        <div class="text-muted text-sm">{{ student.email|default:"No email" }} · {{ student.get_mode_display }}</div>
+        <div style="margin-top:4px">
+          <span class="badge badge-{{ student.mode }}">{{ student.get_mode_display }}</span>
+          {% if student.tutor %}<span class="badge badge-draft" style="margin-left:4px">{{ student.tutor.name }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create account form -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:6px">Account Credentials</div>
+    <p class="text-muted text-sm" style="margin-bottom:20px">
+      The student will use these credentials to log in to their student portal at <strong>/student/dashboard/</strong>
+    </p>
+    {% if messages %}
+    <div class="messages" style="margin-bottom:16px">
+      {% for msg in messages %}
+      <div class="message {{ msg.tags }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" name="username"
+               value="{{ student.name|lower|cut:' ' }}"
+               placeholder="e.g. chisom_nweze"
+               required autocomplete="off">
+        <div class="text-muted text-sm" style="margin-top:4px">Student will use this to log in</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="text" name="password"
+               placeholder="Set a temporary password"
+               required autocomplete="off">
+        <div class="text-muted text-sm" style="margin-top:4px">Share this with the student — they can't change it themselves yet</div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Create Account</button>
+        <a href="{% url 'admin_students' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

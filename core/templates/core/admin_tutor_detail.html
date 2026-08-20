@@ -1,0 +1,64 @@
+{% extends "core/admin_base.html" %}
+{% block title %}{{ tutor.name }} - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Tutors / {{ tutor.name }}{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <div class="flex items-center gap-3 mb-4"><div class="user-avatar" style="width:48px;height:48px;font-size:1.2rem;background:linear-gradient(135deg,{% if tutor.mode == 'online' %}var(--online),#059669{% else %}var(--physical),#7c3aed{% endif %})">{{ tutor.name|slice:":1"|upper }}</div><div><h1 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800">{{ tutor.name }}</h1><span class="badge badge-{{ tutor.mode }}">{{ tutor.get_mode_display }}</span></div></div>
+  </div>
+  {% if not tutor.is_approved %}
+<div class="card" style="margin-bottom:20px;border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.05)">
+  <div class="flex justify-between items-center">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700">Pending Approval</div>
+      <p class="text-muted text-sm">This tutor registered but hasn't been approved yet.</p>
+    </div>
+    <form method="post" action="{% url 'admin_tutor_approve' tutor.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Approve & Activate</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+  
+  <div class="flex gap-2">
+    <a href="{% url 'admin_tutor_edit' tutor.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'admin_tutor_delete' tutor.pk %}" class="btn btn-danger">Delete</a>
+    <form method="post" action="{% url 'admin_tutor_reset_password' tutor.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secondary btn-sm">Reset Password</button>
+    </form>
+  </div>
+</div>
+<div class="grid-2 gap-4 mb-4">
+  <div class="card">
+    <div class="card-title mb-4">Info</div>
+    <table style="border:none"><tbody>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">First Name</td><td>{{ tutor.user.first_name|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Bio</td><td>{{ tutor.user.last_name|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0;width:120px">Email</td><td>{{ tutor.user.email }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Phone</td><td>{{ tutor.phone|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Joined</td><td>{{ tutor.created_at|date:"M d, Y" }}</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div class="card-title mb-4">This Week's Schedule</div>
+    {% for cls in week_classes %}
+    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-weight:600;font-size:.875rem">{{ cls.course.name }}</div>
+      <div class="text-muted text-sm">{{ cls.date|date:"D, M d" }}{% if cls.start_time %} · {{ cls.start_time|time:"H:i" }}{% endif %}</div>
+    </div>
+    {% empty %}<div class="text-muted text-sm">No classes this week.</div>{% endfor %}
+  </div>
+</div>
+<div class="grid-2 gap-4 mb-4">
+  <div class="card">
+    <div class="card-header"><div class="card-title">Students ({{ students.count }})</div></div>
+    {% for s in students %}<div style="display:flex;align-items:center;gap-2;padding:7px 0;border-bottom:1px solid var(--border)"><span class="badge badge-{{ s.mode }}" style="margin-right:8px">{{ s.get_mode_display }}</span>{{ s.name }}</div>{% empty %}<div class="text-muted text-sm">No students.</div>{% endfor %}
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Recent Reports</div><a href="{% url 'admin_reports' %}" class="btn btn-ghost btn-sm">All Reports</a></div>
+    {% for r in reports %}<div style="padding:7px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span class="text-sm">{{ r.week_start|date:"M d" }} – {{ r.week_end|date:"M d" }}</span><div class="flex gap-2 items-center"><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span><a href="{% url 'admin_report_detail' r.pk %}" class="btn btn-secondary btn-sm">View</a></div></div>{% empty %}<div class="text-muted text-sm">No reports yet.</div>{% endfor %}
+  </div>
+</div>
+{% endblock %}

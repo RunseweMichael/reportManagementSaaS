@@ -1,0 +1,74 @@
+{% extends "core/base.html" %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">Parach ICT Academy</div>
+    <div class="logo-sub">Tutor Portal</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a href="{% url 'tutor_dashboard' %}"
+         class="nav-item {% if request.resolver_match.url_name == 'tutor_dashboard' %}active{% endif %}">
+        <span class="icon">⬡</span> Dashboard
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Teaching</div>
+      <a href="{% url 'tutor_courses' %}"
+        class="nav-item {% if request.resolver_match.url_name in 'tutor_courses tutor_course_create tutor_course_detail tutor_course_edit tutor_course_delete tutor_module_create tutor_module_edit tutor_module_delete tutor_topic_create tutor_topic_edit tutor_topic_delete' %}active{% endif %}">
+        <span class="icon">▣</span> Courses & Topics
+      </a>
+      <a href="{% url 'tutor_classrooms' %}"
+         class="nav-item {% if 'classroom' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">◈</span> Classrooms
+      </a>
+      <a href="{% url 'tutor_students' %}"
+         class="nav-item {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">◉</span> My Students
+      </a>
+      <a href="{% url 'tutor_classes' %}"
+         class="nav-item {% if 'class' in request.resolver_match.url_name and 'classroom' not in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">▣</span> Sessions
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Schedule</div>
+      <a href="{% url 'tutor_timetable' %}"
+         class="nav-item {% if 'timetable' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">▦</span> Timetable
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Reports</div>
+      <a href="{% url 'tutor_reports' %}"
+         class="nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="icon">▤</span> Weekly Reports
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+      <div class="user-info">
+        <div class="user-name">{{ tutor.name }}</div>
+        <div class="user-role">Tutor</div>
+      </div>
+    </div>
+     <a href="{% url 'tutor_change_password' %}" class="btn btn-ghost btn-sm"
+     style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
+    <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
+       style="width:100%;margin-top:8px;justify-content:center">Logout</a>
+  </div>
+</aside>
+{% endblock %}
+{% block topbar %}
+<div class="top-bar">
+  <div style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;color:var(--muted)">
+    {% block breadcrumb %}Dashboard{% endblock %}
+  </div>
+  <div class="flex gap-2 items-center">
+    {% if tutor %}<span class="badge badge-{{ tutor.mode }}">{{ tutor.get_mode_display }}</span>{% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Report Review - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Reports / Review{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Weekly Report Review</h1>
+    <p class="page-sub">
+      {{ report.tutor.name }} &nbsp;·&nbsp;
+      {{ report.week_start|date:"M d" }} – {{ report.week_end|date:"M d, Y" }}
+    </p>
+  </div>
+  <div class="flex gap-2 items-center">
+    <span class="badge badge-{{ report.tutor.mode }}">{{ report.tutor.get_mode_display }}</span>
+    <span class="badge badge-{{ report.status }}">{{ report.get_status_display }}</span>
+  </div>
+</div>
+
+<!-- ── Top stats ──────────────────────────────────────────────────────────── -->
+<div class="stat-grid" style="margin-bottom:24px">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">Total Sessions</div>
+    <div class="stat-value">{{ report.classes_held }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Students Reached</div>
+    <div class="stat-value">{{ report.students_attended }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent3)">
+    <div class="stat-label">Courses Taught</div>
+    <div class="stat-value">{{ course_summary|length }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--online)">
+  <div class="stat-label">Topics Covered</div>
+  <div class="stat-value">{{ total_topics }}</div>
+</div>
+</div>
+
+<!-- ── Per-course breakdown ───────────────────────────────────────────────── -->
+<div style="margin-bottom:24px">
+  <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:14px">
+    Course Breakdown
+  </h2>
+
+  {% for c in course_summary %}
+  <div class="card" style="margin-bottom:16px">
+
+    <!-- Course header -->
+    <div class="flex justify-between items-center" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem">
+          {{ c.course.name }}
+        </div>
+        <div class="text-muted text-sm" style="margin-top:3px">
+          {{ c.session_count }} session{{ c.session_count|pluralize }} &nbsp;·&nbsp;
+          {{ c.student_count }} student{{ c.student_count|pluralize }} &nbsp;·&nbsp;
+          {{ c.present }}/{{ c.total_att }} present
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;
+                    color:{% if c.att_rate >= 80 %}var(--accent){% elif c.att_rate >= 60 %}var(--accent3){% else %}var(--warn){% endif %}">
+          {{ c.att_rate }}%
+        </div>
+        <div class="text-muted text-sm">attendance</div>
+      </div>
+    </div>
+
+    <!-- Attendance bar -->
+    <div class="progress-bar" style="margin-bottom:14px;height:6px">
+      <div class="progress-bar-fill" style="width:{{ c.att_rate }}%"></div>
+    </div>
+
+    <div class="grid-2 gap-4">
+
+      <!-- Topics covered -->
+      <div>
+        <div style="font-size:.75rem;font-family:'Syne',sans-serif;font-weight:700;
+                    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">
+          Topics Covered
+        </div>
+        {% if c.topics %}
+          {% for topic in c.topics %}
+          <span class="tag" style="display:inline-block;margin:2px">{{ topic }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="text-muted text-sm">No topics recorded</span>
+        {% endif %}
+      </div>
+
+      <!-- Session log -->
+      <div>
+        <div style="font-size:.75rem;font-family:'Syne',sans-serif;font-weight:700;
+                    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">
+          Sessions
+        </div>
+        {% for session in c.sessions %}
+        <div style="font-size:.8rem;padding:4px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+          <span>
+            {{ session.date|date:"D, M d" }}
+            {% if session.topic %}<span style="color:var(--muted)"> · {{ session.topic.title }}</span>{% endif %}
+          </span>
+          <span class="text-muted">
+            {% with s=session.attendance_summary %}{{ s.present }}/{{ s.total }}{% endwith %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+  {% empty %}
+  <div class="card">
+    <div class="empty-state"><p>No sessions recorded for this week.</p></div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ── Tutor narrative ────────────────────────────────────────────────────── -->
+<div class="card" style="margin-bottom:24px">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;
+              margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+    Tutor's Report
+  </div>
+  <div class="grid-2 gap-4">
+    <div>
+      <div class="form-label">Topics Covered <span class="text-muted text-sm">(tutor's notes)</span></div>
+      <p style="font-size:.9rem;line-height:1.6">{{ report.topics_covered|default:"—" }}</p>
+    </div>
+    <div>
+      <div class="form-label">Challenges</div>
+      <p style="font-size:.9rem;line-height:1.6">{{ report.challenges|default:"—" }}</p>
+    </div>
+    <div>
+      <div class="form-label">Plan for Next Week</div>
+      <p style="font-size:.9rem;line-height:1.6">{{ report.plan_next_week|default:"—" }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Admin feedback ─────────────────────────────────────────────────────── -->
+<div class="card" style="max-width:640px">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;
+              margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+    Admin Feedback
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label class="form-label">Feedback</label>
+      {{ form.admin_feedback }}
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      {{ form.status }}
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Feedback</button>
+      <a href="{% url 'admin_reports' %}" class="btn btn-ghost">← Back to Reports</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Attendance - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classrooms / {{ classroom.name }} / Attendance{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Take Attendance</h1>
+    <p class="page-sub">
+      {{ classroom.name }} · {% if session.topic %}{{ session.topic.title }} · {% endif %}{{ session.date|date:"l, F d Y" }}{% if session.start_time %} · {{ session.start_time|time:"H:i" }}{% endif %}
+    </p>
+  </div>
+  <a href="{% url 'tutor_classroom_detail' classroom.pk %}" class="btn btn-secondary">← Back</a>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  {% if students %}
+  <div class="card" style="max-width:720px">
+    <div style="display:grid;grid-template-columns:1fr 100px 100px 180px;gap:8px;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:4px">
+      <div style="font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Student</div>
+      <div style="font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;color:var(--accent);text-align:center">Present</div>
+      <div style="font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;color:var(--warn);text-align:center">Absent</div>
+      <div style="font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;color:var(--muted)">Note</div>
+    </div>
+    {% for student in students %}
+    <div style="display:grid;grid-template-columns:1fr 100px 100px 180px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-2">
+        <div class="user-avatar" style="width:28px;height:28px;font-size:.72rem">{{ student.name|slice:":1"|upper }}</div>
+        <div>
+          <div style="font-weight:500;font-size:.875rem">{{ student.name }}</div>
+          <span class="badge badge-{{ student.mode }}" style="margin-top:2px">{{ student.get_mode_display }}</span>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <input type="radio" name="student_{{ student.pk }}" value="Present"
+               style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer" checked>
+      </div>
+      <div style="text-align:center">
+        <input type="radio" name="student_{{ student.pk }}" value="Absent"
+               style="width:20px;height:20px;accent-color:var(--warn);cursor:pointer">
+      </div>
+      <div>
+        <input type="text" name="note_{{ student.pk }}" placeholder="Optional note"
+               style="margin-bottom:0;padding:5px 8px;font-size:.78rem">
+      </div>
+    </div>
+    {% endfor %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Attendance</button>
+      <a href="{% url 'tutor_classroom_detail' classroom.pk %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </div>
+
+  <script>
+  const existing = { {% for sid, rec in existing.items %}{{ sid }}: { status: "{{ rec.attendance_status }}", note: "{{ rec.note|escapejs }}" },{% endfor %} };
+  for (const [sid, data] of Object.entries(existing)) {
+    const radio = document.querySelector(`input[name="student_${sid}"][value="${data.status}"]`);
+    if (radio) radio.checked = true;
+    const note = document.querySelector(`input[name="note_${sid}"]`);
+    if (note && data.note) note.value = data.note;
+  }
+  </script>
+  {% else %}
+  <div class="empty-state card"><div class="icon">◉</div><p>No students in this classroom.</p></div>
+  {% endif %}
+</form>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Class Detail - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classes / Detail{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">{{ cls.course.name }}</h1>
+    <p class="page-sub">{{ cls.date|date:"l, F d Y" }}{% if cls.start_time %} · {{ cls.start_time|time:"H:i" }}{% if cls.end_time %} – {{ cls.end_time|time:"H:i" }}{% endif %}{% endif %} · Code: <strong>{{ cls.code }}</strong></p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'take_attendance' cls.pk %}" class="btn btn-primary">Take Attendance</a>
+    <a href="{% url 'tutor_class_edit' cls.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'tutor_class_delete' cls.pk %}" class="btn btn-danger">Delete</a>
+  </div>
+</div>
+<div class="grid-2 gap-4 mb-4">
+  <div class="card">
+    <div class="card-title mb-4">Class Info</div>
+    <table style="border:none">
+      <tr><td class="text-muted text-sm" style="padding:6px 0;width:120px">Topic</td><td>{% if cls.topic %}{{ cls.topic.title }}{% else %}—{% endif %}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Students</td><td>{{ cls.students.count }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Description</td><td>{{ cls.description|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Comment</td><td>{{ cls.comment|default:"—" }}</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title mb-4">Attendance Summary</div>
+    {% with s=summary %}
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div><div class="stat-label">Total</div><div style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800">{{ s.total }}</div></div>
+      <div><div class="stat-label">Present</div><div style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent)">{{ s.present }}</div></div>
+      <div><div class="stat-label">Absent</div><div style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800;color:var(--warn)">{{ s.absent }}</div></div>
+    </div>
+    {% if s.total > 0 %}<div class="progress-bar" style="margin-top:12px"><div class="progress-bar-fill" style="width:{% widthratio s.present s.total 100 %}%"></div></div>{% endif %}
+    {% endwith %}
+  </div>
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Attendance Records</div></div>
+  {% if attendance_records %}
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead><tr><th>Student</th><th>Mode</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+      {% for a in attendance_records %}
+      <tr>
+        <td><a href="{% url 'tutor_student_detail' a.student.pk %}" style="color:var(--accent)">{{ a.student.name }}</a></td>
+        <td><span class="badge badge-{{ a.student.mode }}">{{ a.student.get_mode_display }}</span></td>
+        <td><span class="badge badge-{{ a.attendance_status|lower }}">{{ a.attendance_status }}</span></td>
+        <td class="text-muted text-sm">{{ a.note|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">▤</div><p>No attendance taken yet.</p><a href="{% url 'take_attendance' cls.pk %}" class="btn btn-primary" style="margin-top:12px">Take Attendance Now</a></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "core/base.html" %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">Parach ICT Academy</div>
+    <div class="logo-sub">Admin Panel</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a href="{% url 'admin_dashboard' %}"
+         class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+        <span class="icon">⬡</span> Dashboard
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">People</div>
+      <a href="{% url 'admin_tutors' %}"
+         class="nav-item {% if request.resolver_match.url_name in 'admin_tutors admin_tutor_create admin_tutor_detail admin_tutor_edit admin_tutor_delete' %}active{% endif %}">
+        <span class="icon">◈</span> Tutors
+      </a>
+      <a href="{% url 'admin_students' %}"
+         class="nav-item {% if request.resolver_match.url_name in 'admin_students admin_student_add admin_student_detail admin_student_edit admin_student_delete' %}active{% endif %}">
+        <span class="icon">◉</span> Students
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Curriculum</div>
+      <a href="{% url 'admin_courses' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'admin_courses admin_course_create admin_course_detail admin_course_edit admin_course_delete admin_module_create admin_module_edit admin_module_delete admin_topic_create admin_topic_edit admin_topic_delete' %}active{% endif %}">
+          <span class="icon">▣</span> Courses & Topics
+      </a>
+      
+      
+      <a href="{% url 'admin_classrooms' %}"
+         class="nav-item {% if request.resolver_match.url_name in 'admin_classrooms admin_classroom_detail' %}active{% endif %}">
+        <span class="icon">◈</span> Classrooms
+      </a>
+      <a href="{% url 'admin_timetable' %}"
+         class="nav-item {% if request.resolver_match.url_name in 'admin_timetable admin_timetable_create admin_timetable_edit admin_timetable_delete' %}active{% endif %}">
+        <span class="icon">▦</span> Timetable
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Reports</div>
+      <a href="{% url 'admin_reports' %}"
+         class="nav-item {% if request.resolver_match.url_name in 'admin_reports admin_report_detail' %}active{% endif %}">
+        <span class="icon">▤</span> Weekly Reports
+      </a>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+  <div class="user-pill">
+    <div class="user-avatar"
+         style="background:linear-gradient(135deg,var(--accent3),var(--accent2))">
+      {{ request.user.username|slice:":1"|upper }}
+    </div>
+    <div class="user-info">
+      <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+      <div class="user-role">Administrator</div>
+    </div>
+  </div>
+  <a href="{% url 'admin_change_password' %}" class="btn btn-ghost btn-sm"
+     style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
+  <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
+     style="width:100%;margin-top:6px;justify-content:center">Logout</a>
+</div>
+</aside>
+{% endblock %}
+
+{% block topbar %}
+<div class="top-bar">
+  <div style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;color:var(--muted)">
+    {% block breadcrumb %}Dashboard{% endblock %}
+  </div>
+  <span class="badge"
+        style="background:rgba(251,146,60,.15);color:var(--accent3);border:1px solid rgba(251,146,60,.25)">
+    Admin
+  </span>
+</div>
+{% endblock %}

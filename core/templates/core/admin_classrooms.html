@@ -1,0 +1,45 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Classrooms – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classrooms{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">All Classrooms</h1><p class="page-sub">Every cohort across all tutors</p></div>
+</div>
+<div class="filter-bar">
+  <a href="{% url 'admin_classrooms' %}" class="{% if not mode_filter and not status_filter and not tutor_filter %}active{% endif %}">All</a>
+  <a href="?mode=online"    class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
+  <a href="?mode=physical"  class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
+  <a href="?status=active"  class="{% if status_filter == 'active' %}active{% endif %}">Active</a>
+  <a href="?status=paused"  class="{% if status_filter == 'paused' %}active{% endif %}">Paused</a>
+  <a href="?status=completed" class="{% if status_filter == 'completed' %}active{% endif %}">Completed</a>
+  {% if tutors %}<span style="color:var(--border);padding:0 4px">|</span>
+  {% for t in tutors %}<a href="?tutor={{ t.pk }}" class="{% if tutor_filter == t.pk|stringformat:'s' %}active{% endif %}">{{ t.name }}</a>{% endfor %}{% endif %}
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Classroom</th><th>Course</th><th>Tutor</th><th>Mode</th><th>Students</th><th>Sessions</th><th>Progress</th><th>Status</th><th>Code</th><th></th></tr></thead>
+    <tbody>
+    {% for cr in classrooms %}
+    <tr>
+      <td><div style="font-weight:600">{{ cr.name }}</div><div class="text-muted text-sm">{{ cr.start_date|date:"M d, Y" }}</div></td>
+      <td>{{ cr.course.name }}</td>
+      <td><a href="{% url 'admin_tutor_detail' cr.tutor.pk %}" style="color:var(--accent2)">{{ cr.tutor.name }}</a></td>
+      <td><span class="badge badge-{{ cr.tutor.mode }}">{{ cr.tutor.get_mode_display }}</span></td>
+      <td>{{ cr.students.count }}</td>
+      <td>{{ cr.sessions.count }}</td>
+      <td style="min-width:100px">
+        {% if cr.end_date %}<div class="text-sm" style="margin-bottom:3px">{{ cr.progress_percent }}%</div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ cr.progress_percent }}%"></div></div>
+        {% else %}<span class="text-muted text-sm">—</span>{% endif %}
+      </td>
+      <td><span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">{{ cr.get_status_display }}</span></td>
+      <td><span class="tag" style="letter-spacing:.1em">{{ cr.join_code }}</span></td>
+      <td><a href="{% url 'admin_classroom_detail' cr.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="10" class="text-muted" style="text-align:center;padding:32px">No classrooms found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

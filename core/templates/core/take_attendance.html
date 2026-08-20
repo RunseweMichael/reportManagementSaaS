@@ -1,0 +1,71 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Take Attendance – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Classes / Attendance{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">Take Attendance</h1><p class="page-sub">{{ cls.course.name }} · {{ cls.date|date:"l, F d Y" }}{% if cls.start_time %} · {{ cls.start_time|time:"H:i" }}{% endif %}</p></div>
+  <a href="{% url 'tutor_class_detail' cls.pk %}" class="btn btn-secondary">← Back</a>
+</div>
+<form method="post">
+  {% csrf_token %}
+  {% if students %}
+  <div class="card" style="max-width:700px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-family:'Syne',sans-serif;font-weight:700">Student</div>
+      <div style="width:90px;text-align:center;font-family:'Syne',sans-serif;font-size:.75rem;color:var(--accent);text-transform:uppercase">Present</div>
+      <div style="width:90px;text-align:center;font-family:'Syne',sans-serif;font-size:.75rem;color:var(--warn);text-transform:uppercase">Absent</div>
+      <div style="width:160px;font-family:'Syne',sans-serif;font-size:.75rem;color:var(--muted);text-transform:uppercase">Note</div>
+    </div>
+    {% for student in students %}
+    {% with existing|default_if_none:student as rec %}
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <div style="font-weight:500">{{ student.name }}</div>
+        <span class="badge badge-{{ student.mode }}" style="margin-top:3px">{{ student.get_mode_display }}</span>
+      </div>
+      <div style="width:90px;text-align:center">
+        <input type="radio" name="student_{{ student.pk }}" value="Present"
+          {% if student.pk in existing and existing|dictsort:student.pk %}{% endif %}
+          {% with existing|default_if_none:None as e %}
+          {% endwith %}
+          checked
+          style="width:20px;height:20px;accent-color:var(--accent);cursor:pointer">
+      </div>
+      <div style="width:90px;text-align:center">
+        <input type="radio" name="student_{{ student.pk }}" value="Absent"
+          style="width:20px;height:20px;accent-color:var(--warn);cursor:pointer">
+      </div>
+      <div style="width:160px">
+        <input type="text" name="note_{{ student.pk }}" placeholder="Optional note" style="margin-bottom:0;padding:6px 10px;font-size:.8rem">
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Attendance</button>
+      <a href="{% url 'tutor_class_detail' cls.pk %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </div>
+  <script>
+  // Pre-fill existing attendance
+  const existing = {
+    {% for sid, rec in existing.items %}{{ sid }}: "{{ rec.attendance_status }}",{% endfor %}
+  };
+  for (const [sid, status] of Object.entries(existing)) {
+    const radio = document.querySelector(`input[name="student_${sid}"][value="${status}"]`);
+    if (radio) radio.checked = true;
+  }
+  // Pre-fill notes
+  const notes = {
+    {% for sid, rec in existing.items %}{{ sid }}: "{{ rec.note }}",{% endfor %}
+  };
+  for (const [sid, note] of Object.entries(notes)) {
+    const inp = document.querySelector(`input[name="note_${sid}"]`);
+    if (inp) inp.value = note;
+  }
+  </script>
+  {% else %}
+  <div class="empty-state card"><div class="icon">◉</div><p>No students in this class. Add students first.</p><a href="{% url 'tutor_class_edit' cls.pk %}" class="btn btn-primary" style="margin-top:12px">Edit Class</a></div>
+  {% endif %}
+</form>
+{% endblock %}

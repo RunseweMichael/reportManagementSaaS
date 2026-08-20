@@ -1,0 +1,130 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Admin Dashboard - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Admin Dashboard</h1>
+    <p class="page-sub">Platform overview — {{ today|date:"l, F d Y" }}</p>
+  </div>
+  {% if pending_reports > 0 %}
+  <a href="{% url 'admin_reports' %}?status=submitted" class="badge badge-submitted" style="padding:8px 16px;font-size:.85rem;cursor:pointer">
+    {{ pending_reports }} Report{{ pending_reports|pluralize }} Pending Review
+  </a>
+  {% endif %}
+</div>
+
+<!-- Top stats -->
+<div class="stat-grid">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">Total Tutors</div>
+    <div class="stat-value">{{ total_tutors }}</div>
+    <div class="stat-sub flex gap-2">
+      <span class="dot dot-green"></span>{{ online_tutors }} Online
+      <span class="dot dot-purple" style="margin-left:6px"></span>{{ physical_tutors }} Physical
+    </div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Total Students</div>
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-sub flex gap-2">
+      <span class="dot dot-green"></span>{{ online_students }} Online
+      <span class="dot dot-purple" style="margin-left:6px"></span>{{ physical_students }} Physical
+    </div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent3)">
+    <div class="stat-label">Classes This Week</div>
+    <div class="stat-value">{{ week_classes }}</div>
+    <div class="stat-sub">Scheduled sessions</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--online)">
+    <div class="stat-label">Attendance Rate</div>
+    <div class="stat-value">{{ week_rate }}%</div>
+    <div class="stat-sub">This week</div>
+  </div>
+</div>
+
+<!-- Second row stats -->
+<div class="stat-grid" style="margin-top:12px">
+  <div class="stat-card" style="--glow-color:var(--physical)">
+    <div class="stat-label">Active Classrooms</div>
+    <div class="stat-value">{{ active_classrooms }}</div>
+    <div class="stat-sub"><a href="{% url 'admin_classrooms' %}" style="color:var(--accent);font-size:.78rem">View all →</a></div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--warn)">
+    <div class="stat-label">Pending Reports</div>
+    <div class="stat-value">{{ pending_reports }}</div>
+    <div class="stat-sub"><a href="{% url 'admin_reports' %}?status=submitted" style="color:var(--accent);font-size:.78rem">Review →</a></div>
+  </div>
+</div>
+
+<!-- Mode breakdown -->
+<div class="grid-2 gap-4" style="margin-top:20px">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🌐 Online Tutors</div>
+      <a href="{% url 'admin_tutors' %}?mode=online" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    {% for t in tutors %}{% if t.mode == 'online' %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-2">
+        <div class="user-avatar" style="background:linear-gradient(135deg,var(--online),#059669)">{{ t.user.first_name|slice:":1"|upper }}</div>
+        <div>
+          <div style="font-size:.875rem;font-weight:600">{{ t.user.first_name }}{{ t.user.last_name}}</div>
+          <!-- <div class="text-muted text-sm">{{ t.specialization|default:"—" }}</div> -->
+        </div>
+      </div>
+      <div class="text-muted text-sm">{{ t.student_count }} students</div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🏫 Physical Tutors</div>
+      <a href="{% url 'admin_tutors' %}?mode=physical" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    {% for t in tutors %}{% if t.mode == 'physical' %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div class="flex items-center gap-2">
+        <div class="user-avatar" style="background:linear-gradient(135deg,var(--physical),#7c3aed)">{{ t.user.first_name|slice:":1"|upper }}</div>
+        <div>
+          <div style="font-size:.875rem;font-weight:600">{{ t.user.first_name }} {{ t.user.last_name }}</div>
+          <!-- <div class="text-muted text-sm">{{ t.user.specialization|default:"—" }}</div> -->
+        </div>
+      </div>
+      <div class="text-muted text-sm">{{ t.student_count }} students</div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+</div>
+
+<!-- Pending reports -->
+<div class="card" style="margin-top:16px">
+  <div class="card-header">
+    <div class="card-title">Pending Reports</div>
+    <a href="{% url 'admin_reports' %}?status=submitted" class="btn btn-ghost btn-sm">View All</a>
+  </div>
+  {% if recent_reports %}
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead><tr><th>Tutor</th><th>Mode</th><th>Week</th><th>Classes</th><th>Students</th><th></th></tr></thead>
+      <tbody>
+      {% for r in recent_reports %}
+      <tr>
+        <td style="font-weight:600">{{ r.tutor.name }}</td>
+        <td><span class="badge badge-{{ r.tutor.mode }}">{{ r.tutor.get_mode_display }}</span></td>
+        <td>{{ r.week_start|date:"M d" }} – {{ r.week_end|date:"M d" }}</td>
+        <td>{{ r.classes_held }}</td>
+        <td>{{ r.students_attended }}</td>
+        <td><a href="{% url 'admin_report_detail' r.pk %}" class="btn btn-primary btn-sm">Review</a></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><div class="icon">✓</div><p>All reports reviewed!</p></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Add Student – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Students / Add Student{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Add Student</h1>
+    <p class="page-sub">Add a new student and place them in a classroom</p>
+  </div>
+  <a href="{% url 'tutor_students' %}" class="btn btn-secondary">← Back</a>
+</div>
+
+<div style="max-width:640px">
+
+  <!-- Flow hint -->
+  <div class="card" style="margin-bottom:20px;border-color:rgba(129,140,248,.3);background:linear-gradient(135deg,rgba(129,140,248,.06),rgba(110,231,183,.04))">
+    <div style="display:flex;gap:24px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:10px;flex:1">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;color:#000;flex-shrink:0">1</div>
+          <span style="font-size:.875rem">Fill in the student's details below</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;color:#fff;flex-shrink:0">2</div>
+          <span style="font-size:.875rem">Select a classroom — the course is set automatically</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:24px;height:24px;border-radius:50%;background:var(--accent3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.75rem;color:#fff;flex-shrink:0">3</div>
+          <span style="font-size:.875rem">Student is enrolled and appears in the classroom roster</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        Student Details
+      </div>
+
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label" for="{{ field.id_for_label }}">
+          {{ field.label }}
+          {% if field.field.required %}<span style="color:var(--warn)"> *</span>{% endif %}
+        </label>
+        {{ field }}
+        {% if field.help_text %}
+        <div style="font-size:.75rem;color:var(--muted);margin-top:4px">{{ field.help_text }}</div>
+        {% endif %}
+        {% if field.errors %}
+        <ul style="list-style:none;padding:0;margin-top:4px">
+          {% for e in field.errors %}<li style="color:var(--warn);font-size:.8rem">{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {% if form.non_field_errors %}
+      <div class="message error" style="margin-bottom:16px">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Add Student & Enroll</button>
+        <a href="{% url 'tutor_students' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

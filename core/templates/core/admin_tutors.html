@@ -1,0 +1,48 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Tutors - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Tutors{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">Tutors</h1><p class="page-sub">{{ tutors.count }} tutor{{ tutors.count|pluralize }} registered</p></div>
+  <a href="{% url 'admin_tutor_create' %}" class="btn btn-primary">+ Add Tutor</a>
+</div>
+<div class="filter-bar">
+  <a href="{% url 'admin_tutors' %}" class="{% if not mode_filter %}active{% endif %}">All</a>
+  <a href="?mode=online" class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
+  <a href="?mode=physical" class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Mode</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for t in tutors %}
+    <tr>
+      <td><div style="
+    font-weight:600;
+    color:
+    {% if t.mode == 'online' %}
+        var(--online)
+    {% else %}
+        var(--physical)
+    {% endif %};
+">
+    {{ t.user.first_name }} {{ t.user.last_name }}
+</div></td>
+      <td><span class="badge badge-{{ t.mode }}">{{ t.get_mode_display }}</span></td>
+      <!-- <td>{{ t.user.specialization|default:"—" }}</td> -->
+      <!-- <td>{{ t.student_count }}</td> -->
+      <td class="text-muted text-sm">{{ t.user.email }}</td>
+      <td><span class="badge {% if t.active %}badge-active{% else %}badge-inactive{% endif %}">{% if t.active %}Active{% else %}Inactive{% endif %}</span></td>
+      <td><div class="flex gap-2">
+        <a href="{% url 'admin_tutor_detail' t.pk %}" class="btn btn-secondary btn-sm">View</a>
+        <a href="{% url 'admin_tutor_edit' t.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+        <a href="{% url 'admin_tutor_delete' t.pk %}" class="btn btn-danger btn-sm">Del</a>
+      </div></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" class="text-muted" style="text-align:center;padding:32px">No tutors found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

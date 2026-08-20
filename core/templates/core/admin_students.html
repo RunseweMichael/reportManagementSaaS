@@ -1,0 +1,95 @@
+{% extends "core/admin_base.html" %}
+{% block title %}Students - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Students{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Students</h1>
+    <p class="page-sub">{{ students.count }} student{{ students.count|pluralize }}</p>
+  </div>
+  <a href="{% url 'admin_student_add' %}" class="btn btn-primary">+ Add Student</a>
+</div>
+
+<div class="filter-bar">
+  <a href="{% url 'admin_students' %}" class="{% if not mode_filter and not tutor_filter %}active{% endif %}">All</a>
+  <a href="?mode=online"   class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
+  <a href="?mode=physical" class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
+  {% if tutors %}
+  <span style="color:var(--border);padding:0 4px">|</span>
+  {% for t in tutors %}
+  <a href="?tutor={{ t.pk }}" class="{% if tutor_filter == t.pk|stringformat:'s' %}active{% endif %}">{{ t.name }}</a>
+  {% endfor %}
+  {% endif %}
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Mode</th>
+        <th>Tutor</th>
+        <th>Classrooms</th>
+        <th>Courses</th>
+        <th>Attendance</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for s in students %}
+    <tr>
+      <td>
+        <div class="flex items-center gap-2">
+          <div class="user-avatar" style="width:30px;height:30px;font-size:.78rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
+            {{ s.full_name|slice:":1"|upper }}
+          </div>
+          <div>
+            <a href="{% url 'admin_student_detail' s.pk %}" style="font-weight:600;color:var(--accent)">{{ s.name }}</a>
+            {% if s.email %}<div class="text-muted text-sm">{{ s.email }}</div>{% endif %}
+          </div>
+        </div>
+      </td>
+      <td><span class="badge badge-{{ s.mode }}">{{ s.get_mode_display }}</span></td>
+      <td>
+        {% if s.tutor %}
+        <a href="{% url 'admin_tutor_detail' s.tutor.pk %}" style="color:var(--accent2)">{{ s.tutor.name }}</a>
+        {% else %}<span class="text-muted">Unassigned</span>{% endif %}
+      </td>
+      <td>
+        {% for cr in s.classrooms.all %}
+        <a href="{% url 'admin_classroom_detail' cr.pk %}" class="tag" style="display:inline-block;margin-bottom:2px;color:var(--accent2)">
+          {{ cr.name|truncatechars:18 }}
+        </a>
+        {% empty %}<span class="text-muted text-sm">None</span>
+        {% endfor %}
+      </td>
+      <td>{% for c in s.courses.all %}<span class="tag">{{ c.name }}</span> {% empty %}—{% endfor %}</td>
+      <td>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ s.attendance_rate }}%"></div></div>
+        <div class="text-muted text-sm" style="margin-top:3px">{{ s.attendance_rate }}%</div>
+      </td>
+      <td>
+        <span class="badge {% if s.active %}badge-active{% else %}badge-inactive{% endif %}">
+          {% if s.active %}Active{% else %}Inactive{% endif %}
+        </span>
+      </td>
+      <td>
+        <div class="flex gap-2">
+          <a href="{% url 'admin_student_detail' s.pk %}"  class="btn btn-primary btn-sm">View</a>
+          <a href="{% url 'admin_student_edit' s.pk %}"    class="btn btn-secondary btn-sm">Edit</a>
+          <a href="{% url 'admin_student_delete' s.pk %}"  class="btn btn-danger btn-sm">Del</a>
+        </div>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="8" class="text-muted" style="text-align:center;padding:32px">
+        No students found.
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

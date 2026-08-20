@@ -1,0 +1,60 @@
+{% extends "core/base.html" %}
+{% block sidebar %}
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">Parach ICT Academy</div>
+    <div class="logo-sub">Student Portal</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <a href="{% url 'student_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+        <span class="icon">⬡</span> Dashboard
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">My Learning</div>
+      {% for cr in student.classrooms.all %}
+      <a href="{% url 'student_classroom' cr.pk %}" class="nav-item {% if request.resolver_match.url_name == 'student_classroom' and request.resolver_match.kwargs.pk == cr.pk %}active{% endif %}">
+        <span class="icon">◈</span>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ cr.name|truncatechars:22 }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Records</div>
+      <a href="{% url 'student_attendance' %}" class="nav-item {% if request.resolver_match.url_name == 'student_attendance' %}active{% endif %}">
+        <span class="icon">▤</span> Attendance
+      </a>
+      <a href="{% url 'student_profile' %}" class="nav-item {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">
+        <span class="icon">◉</span> Profile
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar" style="background:linear-gradient(135deg,var(--accent2),#6366f1)">
+        {{ student.name|slice:":1"|upper }}
+      </div>
+      <div class="user-info">
+        <div class="user-name">{{ student.name }}</div>
+        <div class="user-role">{{ student.get_mode_display }} Student</div>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;justify-content:center">Logout</a>
+  </div>
+</aside>
+{% endblock %}
+{% block topbar %}
+<div class="top-bar">
+  <div style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;color:var(--muted)">
+    {% block breadcrumb %}Dashboard{% endblock %}
+  </div>
+  <div class="flex gap-2 items-center">
+    <span class="badge badge-{{ student.mode }}">{{ student.get_mode_display }}</span>
+    {% if student.active %}
+    <span class="badge badge-active">Active</span>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

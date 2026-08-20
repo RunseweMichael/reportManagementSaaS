@@ -1,0 +1,55 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Timetable – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Timetable{% endblock %}
+{% load core_extras %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">My Timetable</h1><p class="page-sub">Your weekly schedule at a glance</p></div>
+  <a href="{% url 'tutor_timetable_create' %}" class="btn btn-primary">+ Add Entry</a>
+</div>
+<div class="card">
+  <div style="overflow-x:auto">
+    <table style="border-collapse:separate;border-spacing:0;min-width:700px;width:100%">
+      <thead>
+        <tr>
+          {% for day_num, day_name in days.items %}
+          <th style="background:var(--surface2);padding:12px 10px;font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border)">{{ day_name }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="vertical-align:top">
+          {% for day_num, day_name in days.items %}
+          <td style="padding:10px 8px;border-right:1px solid var(--border);min-height:100px;min-width:120px">
+            {% for entry in grouped|dict_lookup:day_num %}
+            <div class="tg-entry" style="margin-bottom:6px">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem">
+    {{ entry.start_time|time:"H:i" }} – {{ entry.end_time|time:"H:i" }}
+  </div>
+  <div style="font-size:.8rem;margin-top:2px">
+    {{ entry.subject|default:entry.course.name }}
+  </div>
+  {% if entry.location %}
+  <div style="font-size:.72rem;color:var(--muted);margin-top:2px">
+    📍 {{ entry.get_location_display }}
+  </div>
+  {% endif %}
+  <div style="font-size:.72rem;color:var(--muted);margin-top:3px">
+    {{ entry.students.count }} students
+  </div>
+  <div style="display:flex;gap:4px;margin-top:6px">
+    <a href="{% url 'tutor_timetable_edit' entry.pk %}" class="btn btn-secondary btn-sm" style="padding:2px 8px;font-size:.68rem">Edit</a>
+    <a href="{% url 'tutor_timetable_delete' entry.pk %}" class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:.68rem">Del</a>
+  </div>
+</div>
+            {% empty %}
+            <div style="color:var(--border);font-size:.75rem;padding:8px 0;text-align:center">—</div>
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

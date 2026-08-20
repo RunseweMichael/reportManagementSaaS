@@ -1,0 +1,44 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}My Classes – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}My Classes{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div><h1 class="page-title">My Classes</h1><p class="page-sub">All sessions you've taught or scheduled</p></div>
+</div>
+{% if classes %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Date</th><th>Course</th><th>Topic</th><th>Students</th><th>Attendance</th><th>Code</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for cls in classes %}
+    {% with s=cls.attendance_summary %}
+    <tr>
+      <td><div style="font-weight:600">{{ cls.date|date:"M d, Y" }}</div><div class="text-muted text-sm">{% if cls.start_time %}{{ cls.start_time|time:"H:i" }}{% if cls.end_time %} – {{ cls.end_time|time:"H:i" }}{% endif %}{% else %}—{% endif %}</div></td>
+      <td>{{ cls.course.name }}</td>
+      <td>{% if cls.topic %}<span>{{ cls.topic.title }}</span><div class="text-muted text-sm">Wk {{ cls.topic.week }} D{{ cls.topic.day }}</div>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+      <td>{{ cls.students.count }}</td>
+      <td>
+        {% if s.total > 0 %}
+        <div style="font-size:.82rem;margin-bottom:4px">{{ s.present }}/{{ s.total }} present</div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width:{% widthratio s.present s.total 100 %}%"></div></div>
+        {% else %}<span class="text-muted text-sm">Not taken</span>{% endif %}
+      </td>
+      <td><span class="tag">{{ cls.code }}</span></td>
+      <td>
+        <div class="flex gap-2">
+          <a href="{% url 'tutor_class_detail' cls.pk %}" class="btn btn-secondary btn-sm">View</a>
+          <a href="{% url 'take_attendance' cls.pk %}" class="btn btn-primary btn-sm">Attendance</a>
+          <a href="{% url 'tutor_class_edit' cls.pk %}"    class="btn btn-secondary btn-sm">Edit</a>
+          <a href="{% url 'tutor_class_delete' cls.pk %}"  class="btn btn-danger btn-sm">Del</a>
+        </div>
+      </td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state card"><div class="icon">◈</div><p>No classes yet. Create your first class to get started.</p><a href="{% url 'tutor_class_create' %}" class="btn btn-primary" style="margin-top:16px">+ Create Class</a></div>
+{% endif %}
+{% endblock %}

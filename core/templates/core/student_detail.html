@@ -1,0 +1,58 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}{{ student.name }} - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Students / {{ student.name }}{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">{{ student.name }}</h1>
+    <p class="page-sub">Enrolled {{ student.enrolled_at|date:"M d, Y" }} · Week {{ student.current_week }}</p>
+  </div>
+  <div class="flex gap-2">
+    <span class="badge badge-{{ student.mode }}">{{ student.get_mode_display }}</span>
+    <span class="badge {% if student.active %}badge-active{% else %}badge-inactive{% endif %}">{% if student.active %}Active{% else %}Inactive{% endif %}</span>
+  </div>
+</div>
+<div class="grid-2 gap-4 mb-4">
+  <div class="card">
+    <div class="card-title mb-4">Student Info</div>
+    <table style="border:none"><tbody>
+      <tr><td class="text-muted text-sm" style="padding:6px 0;width:110px">Email</td><td>{{ student.email|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Phone</td><td>{{ student.phone|default:"—" }}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Courses</td><td>{% for c in student.courses.all %}<span class="tag">{{ c.name }}</span> {% endfor %}</td></tr>
+      <tr><td class="text-muted text-sm" style="padding:6px 0">Notes</td><td>{{ student.notes|default:"—" }}</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div class="card-title mb-4">Attendance Overview</div>
+    <div style="text-align:center;padding:12px 0">
+      <div style="font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">{{ student.attendance_rate }}%</div>
+      <div class="text-muted text-sm">Overall attendance rate</div>
+    </div>
+    <div class="progress-bar" style="height:10px"><div class="progress-bar-fill" style="width:{{ student.attendance_rate }}%"></div></div>
+    <div class="flex justify-between text-muted text-sm" style="margin-top:6px">
+      <span>{{ attendance|length }} records</span>
+      <span>{{ student.attendance_set.filter|default:"" }}{{ student.attendance_rate }}% present</span>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header"><div class="card-title">Recent Attendance</div></div>
+  <div class="table-wrap" style="border:none">
+    <table>
+      <thead><tr><th>Date</th><th>Class</th><th>Status</th><th>Note</th></tr></thead>
+      <tbody>
+      {% for a in attendance %}
+      <tr>
+        <td>{{ a.date|date:"M d, Y" }}</td>
+        <td>{{ a.class_instance.course.name }}</td>
+        <td><span class="badge badge-{{ a.attendance_status|lower }}">{{ a.attendance_status }}</span></td>
+        <td class="text-muted text-sm">{{ a.note|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-muted" style="text-align:center;padding:24px">No attendance records yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

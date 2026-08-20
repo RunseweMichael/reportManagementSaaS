@@ -1,0 +1,128 @@
+{% extends "core/tutor_base.html" %}
+{% block title %}Dashboard – Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">Good day, {{ tutor.name }} 👋</h1>
+    <p class="page-sub">Week of {{ week_start|date:"M d" }} – {{ week_end|date:"M d, Y" }}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'tutor_classroom_create' %}" class="btn btn-secondary">+ New Classroom</a>
+    <a href="{% url 'tutor_class_create' %}"     class="btn btn-primary">+ New Session</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-card" style="--glow-color:var(--accent)">
+    <div class="stat-label">This Week's Sessions</div>
+    <div class="stat-value">{{ week_classes.count }}</div>
+    <div class="stat-sub">Scheduled</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent2)">
+    <div class="stat-label">Active Classrooms</div>
+    <div class="stat-value">{{ classrooms.count }}</div>
+    <div class="stat-sub"><a href="{% url 'tutor_classrooms' %}" style="color:var(--accent);font-size:.78rem">Manage →</a></div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--accent3)">
+    <div class="stat-label">Active Students</div>
+    <div class="stat-value">{{ students.count }}</div>
+  </div>
+  <div class="stat-card" style="--glow-color:var(--physical)">
+    <div class="stat-label">Attendance Rate</div>
+    <div class="stat-value">{{ attendance_rate }}%</div>
+    <div class="stat-sub">All-time</div>
+  </div>
+</div>
+
+<div class="grid-2 gap-4" style="margin-top:20px">
+
+  <!-- Active classrooms -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">My Classrooms</div>
+      <a href="{% url 'tutor_classrooms' %}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    {% if classrooms %}
+    {% for cr in classrooms %}
+    <a href="{% url 'tutor_classroom_detail' cr.pk %}" style="display:block;padding:12px 0;border-bottom:1px solid var(--border);text-decoration:none">
+      <div class="flex justify-between items-center" style="margin-bottom:5px">
+        <div>
+          <div style="font-weight:600;font-size:.875rem;color:var(--text)">{{ cr.name }}</div>
+          <div class="text-muted text-sm">{{ cr.course.name }} · {{ cr.students.count }} students · Week {{ cr.current_week }}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="tag" style="letter-spacing:.08em">{{ cr.join_code }}</span>
+          <span style="color:var(--accent)">→</span>
+        </div>
+      </div>
+      {% if cr.end_date %}
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ cr.progress_percent }}%"></div></div>
+      {% endif %}
+    </a>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+      <div class="icon">◈</div>
+      <p>No active classrooms.</p>
+      <a href="{% url 'tutor_classroom_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px">Create One</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- This week's sessions -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">This Week's Sessions</div>
+      <a href="{% url 'tutor_classes' %}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    {% if week_classes %}
+    {% for cls in week_classes %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-weight:600;font-size:.875rem">{{ cls.course.name }}</div>
+        <div class="text-muted text-sm">
+          {{ cls.date|date:"D, M d" }}{% if cls.start_time %} · {{ cls.start_time|time:"H:i" }}{% endif %}
+          {% if cls.topic %} · {{ cls.topic.title }}{% endif %}
+          {% if cls.classroom %} · {{ cls.classroom.name }}{% endif %}
+        </div>
+      </div>
+      <div class="flex gap-2 items-center">
+        <span class="text-muted text-sm">{{ cls.students.count }} students</span>
+        <a href="{% url 'tutor_class_detail' cls.pk %}" class="btn btn-secondary btn-sm">View</a>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state"><div class="icon">◻</div><p>No sessions this week.</p></div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Weekly report banner -->
+<div class="card" style="margin-top:16px;border-color:{% if report.status == 'submitted' %}rgba(110,231,183,.3){% elif report.status == 'reviewed' %}rgba(129,140,248,.3){% else %}rgba(251,146,60,.3){% endif %}">
+  <div class="flex justify-between items-center">
+    <div>
+      <div class="flex items-center gap-2" style="margin-bottom:6px">
+        <span style="font-family:'Syne',sans-serif;font-weight:700">Weekly Report</span>
+        <span class="badge badge-{{ report.status }}">{{ report.get_status_display }}</span>
+      </div>
+      <p class="text-muted text-sm">
+        {{ week_start|date:"M d" }} – {{ week_end|date:"M d" }} ·
+        {{ report.classes_held }} classes · {{ report.students_attended }} students attended
+      </p>
+      {% if report.admin_feedback %}
+      <p style="margin-top:6px;font-size:.82rem;color:var(--accent2)">📝 Admin: {{ report.admin_feedback|truncatechars:80 }}</p>
+      {% endif %}
+    </div>
+    {% if report.status == 'draft' %}
+    <a href="{% url 'tutor_report_create' %}" class="btn btn-primary">Submit Report</a>
+    {% else %}
+    <a href="{% url 'tutor_report_edit' report.pk %}" class="btn btn-secondary">Update Report</a>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

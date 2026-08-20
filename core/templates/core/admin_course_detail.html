@@ -1,0 +1,100 @@
+{% extends "core/admin_base.html" %}
+{% block title %}{{ course.name }} - Parach ICT Academy{% endblock %}
+{% block breadcrumb %}Courses / {{ course.name }}{% endblock %}
+{% block content %}
+
+<div class="flex justify-between items-center mb-6">
+  <div>
+    <h1 class="page-title">{{ course.name }}</h1>
+    <p class="page-sub">{{ course.code }} · {{ course.duration_weeks }} weeks · {{ modules.count }} module{{ modules.count|pluralize }}</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'admin_module_create' course.pk %}" class="btn btn-primary">+ Add Module</a>
+    <a href="{% url 'admin_course_edit' course.pk %}" class="btn btn-secondary">Edit Course</a>
+    <a href="{% url 'admin_courses' %}" class="btn btn-ghost">← Back</a>
+  </div>
+</div>
+
+{% for module in modules %}
+<div class="card" style="margin-bottom:16px">
+
+  <!-- Module header -->
+  <div class="flex justify-between items-center"
+       style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem">
+        {{ forloop.counter }}. {{ module.name }}
+      </div>
+      {% if module.description %}
+      <div class="text-muted text-sm" style="margin-top:2px">{{ module.description }}</div>
+      {% endif %}
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'admin_topic_create' course.pk module.pk %}" class="btn btn-primary btn-sm">+ Topic</a>
+      <a href="{% url 'admin_module_edit' course.pk module.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+      <a href="{% url 'admin_module_delete' course.pk module.pk %}" class="btn btn-danger btn-sm">Del</a>
+    </div>
+  </div>
+
+  <!-- Topics under this module -->
+  {% if module.topics.all %}
+  <table class="table" style="margin-bottom:0">
+    <thead>
+      <tr><th>Week</th><th>Day</th><th>Topic</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for topic in module.topics.all %}
+      <tr>
+        <td>{{ topic.week }}</td>
+        <td>{{ topic.day }}</td>
+        <td>
+          <div style="font-weight:500">{{ topic.title }}</div>
+          {% if topic.details %}<div class="text-muted text-sm">{{ topic.details|truncatechars:60 }}</div>{% endif %}
+        </td>
+        <td style="text-align:right">
+          <a href="{% url 'admin_topic_edit' course.pk module.pk topic.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+          <a href="{% url 'admin_topic_delete' course.pk module.pk topic.pk %}" class="btn btn-ghost btn-sm" style="color:var(--warn)">Del</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state" style="padding:16px">
+    <p style="color:var(--muted);font-size:.875rem">No topics yet.
+      <a href="{% url 'admin_topic_create' course.pk module.pk %}">Add the first one →</a>
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% empty %}
+<div class="card" style="text-align:center;padding:48px">
+  <p style="color:var(--muted);margin-bottom:16px">No modules yet. Modules group topics into logical sections.</p>
+  <a href="{% url 'admin_module_create' course.pk %}" class="btn btn-primary">+ Add First Module</a>
+</div>
+{% endfor %}
+
+{% if orphan_topics %}
+<div class="card" style="margin-top:16px">
+  <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;color:var(--muted)">
+    Unassigned Topics
+  </div>
+  <table class="table">
+    <thead><tr><th>Week</th><th>Day</th><th>Topic</th><th></th></tr></thead>
+    <tbody>
+      {% for topic in orphan_topics %}
+      <tr>
+        <td>{{ topic.week }}</td><td>{{ topic.day }}</td>
+        <td>{{ topic.title }}</td>
+        <td style="text-align:right">
+          <a href="{% url 'admin_topic_delete' course.pk topic.pk %}" class="btn btn-ghost btn-sm" style="color:var(--warn)">Del</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}
