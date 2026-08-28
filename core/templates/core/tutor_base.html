@@ -55,10 +55,12 @@
         <div class="user-role">Tutor</div>
       </div>
     </div>
+    <div style="display: flex; flex-direction: column;">
      <a href="{% url 'tutor_change_password' %}" class="btn btn-ghost btn-sm"
      style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
     <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
        style="width:100%;margin-top:8px;justify-content:center">Logout</a>
+    </div>
   </div>
 </aside>
 {% endblock %}

@@ -7,7 +7,6 @@
     <h1 class="page-title">My Classrooms</h1>
     <p class="page-sub">Each classroom is a cohort of students taking a course together</p>
   </div>
-  <a href="{% url 'tutor_classroom_create' %}" class="btn btn-primary">+ New Classroom</a>
 </div>
 
 <div class="filter-bar">
@@ -47,9 +46,7 @@
     </div>
     <div class="flex gap-2">
       <a href="{% url 'tutor_classroom_detail' cr.pk %}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">Open</a>
-      <a href="{% url 'tutor_classroom_edit' cr.pk %}"   class="btn btn-secondary btn-sm">Edit</a>
-      <a href="{% url 'tutor_classroom_delete' cr.pk %}" class="btn btn-danger btn-sm">Del</a>
-    </div>
+      </div>
   </div>
   {% endfor %}
 </div>
@@ -57,7 +54,6 @@
 <div class="empty-state card">
   <div class="icon">◈</div>
   <p>No classrooms yet. Create one to start grouping students into cohorts.</p>
-  <a href="{% url 'tutor_classroom_create' %}" class="btn btn-primary" style="margin-top:16px">+ Create First Classroom</a>
 </div>
 {% endif %}
 {% endblock %}

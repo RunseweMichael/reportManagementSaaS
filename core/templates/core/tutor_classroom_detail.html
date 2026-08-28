@@ -13,9 +13,7 @@
   </div>
   <div class="flex gap-2">
     <a href="{% url 'tutor_classroom_session_create' classroom.pk %}" class="btn btn-primary">+ Post Session</a>
-    <a href="{% url 'tutor_classroom_edit' classroom.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'tutor_classroom_delete' classroom.pk %}" class="btn btn-danger">Delete</a>
-  </div>
+    </div>
 </div>
 
 <!-- Stats -->
@@ -35,15 +33,6 @@
 </div>
 
 <!-- Join code banner -->
-<div class="card" style="margin-bottom:20px;border-color:rgba(129,140,248,.3);background:linear-gradient(135deg,rgba(129,140,248,.08),rgba(110,231,183,.04))">
-  <div class="flex justify-between items-center">
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:4px">Student Join Code</div>
-      <p class="text-muted text-sm">Students use this code to identify their classroom</p>
-    </div>
-    <div style="font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;letter-spacing:.2em;color:var(--accent2)">{{ classroom.join_code }}</div>
-  </div>
-</div>
 
 {% if classroom.end_date %}
 <div style="margin-bottom:20px">
@@ -70,7 +59,9 @@
       <div class="flex justify-between items-center">
         <div>
           <div style="font-weight:600;font-size:.875rem">
-            {% if session.topic %}{{ session.topic.title }}{% else %}Session — {{ session.date|date:"M d" }}{% endif %}
+            {% with display=session.topics_display %}
+              {% if display and display != "—" %}{{ display }}{% else %}Session — {{ session.date|date:"M d" }}{% endif %}
+            {% endwith %}
           </div>
           <div class="text-muted text-sm">
             {{ session.date|date:"D, M d Y" }}{% if session.start_time %} · {{ session.start_time|time:"H:i" }}{% endif %}

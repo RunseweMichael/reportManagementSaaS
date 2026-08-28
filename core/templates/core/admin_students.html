@@ -7,7 +7,10 @@
     <h1 class="page-title">Students</h1>
     <p class="page-sub">{{ students.count }} student{{ students.count|pluralize }}</p>
   </div>
-  <a href="{% url 'admin_student_add' %}" class="btn btn-primary">+ Add Student</a>
+<form method="post" action="{% url 'admin_sync_students' %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary">🔄 Sync Students</button>
+</form>
 </div>
 
 <div class="filter-bar">
@@ -79,6 +82,7 @@
           <a href="{% url 'admin_student_detail' s.pk %}"  class="btn btn-primary btn-sm">View</a>
           <a href="{% url 'admin_student_edit' s.pk %}"    class="btn btn-secondary btn-sm">Edit</a>
           <a href="{% url 'admin_student_delete' s.pk %}"  class="btn btn-danger btn-sm">Del</a>
+          <a href="{% url 'admin_student_assign' s.pk %}" class="btn btn-secondary btn-sm">Assign</a>
         </div>
       </td>
     </tr>

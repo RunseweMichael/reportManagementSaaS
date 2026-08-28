@@ -4,7 +4,14 @@
 {% block content %}
 <div class="flex justify-between items-center mb-6">
   <div><h1 class="page-title">All Classrooms</h1><p class="page-sub">Every cohort across all tutors</p></div>
+   <form method="post" action="{% url 'admin_sync_courses' %}">
+  {% csrf_token %}
+  <a href="{% url 'admin_classroom_create' %}" class="btn btn-primary">+ Create Cohort</a>
+</form>
 </div>
+
+
+
 <div class="filter-bar">
   <a href="{% url 'admin_classrooms' %}" class="{% if not mode_filter and not status_filter and not tutor_filter %}active{% endif %}">All</a>
   <a href="?mode=online"    class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
@@ -17,7 +24,7 @@
 </div>
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Classroom</th><th>Course</th><th>Tutor</th><th>Mode</th><th>Students</th><th>Sessions</th><th>Progress</th><th>Status</th><th>Code</th><th></th></tr></thead>
+    <thead><tr><th>Classroom</th><th>Course</th><th>Tutor</th><th>Mode</th><th>Students</th><th>Sessions</th><th>Progress</th><th>Status</th><th>Action</th></tr></thead>
     <tbody>
     {% for cr in classrooms %}
     <tr>
@@ -33,8 +40,11 @@
         {% else %}<span class="text-muted text-sm">—</span>{% endif %}
       </td>
       <td><span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">{{ cr.get_status_display }}</span></td>
-      <td><span class="tag" style="letter-spacing:.1em">{{ cr.join_code }}</span></td>
-      <td><a href="{% url 'admin_classroom_detail' cr.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+      <td>
+        <a href="{% url 'admin_classroom_detail' cr.pk %}" class="btn btn-secondary btn-sm">View</a>
+        <a href="{% url 'admin_classroom_edit' cr.pk %}" class="btn btn-primary btn-sm">Edit</a>
+        <a href="{% url 'admin_classroom_delete' cr.pk %}" class="btn btn-danger btn-sm">Del</a>
+      </td>
     </tr>
     {% empty %}
     <tr><td colspan="10" class="text-muted" style="text-align:center;padding:32px">No classrooms found.</td></tr>

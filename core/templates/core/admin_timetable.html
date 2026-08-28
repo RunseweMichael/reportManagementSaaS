@@ -39,8 +39,14 @@
     {{ entry.start_time|time:"H:i" }}–{{ entry.end_time|time:"H:i" }}
   </div>
   <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem">
-    {{ entry.subject|default:entry.course.name|truncatechars:20 }}
-  </div>
+  {% if entry.subject %}
+    {{ entry.subject|truncatechars:20 }}
+  {% elif entry.course %}
+    {{ entry.course.name|truncatechars:20 }}
+  {% else %}
+    <span class="text-muted">—</span>
+  {% endif %}
+</div>
   <div style="font-size:.72rem;margin-top:2px">
     <a href="{% url 'admin_tutor_detail' entry.tutor.pk %}"
        style="color:{% if entry.tutor.mode == 'online' %}var(--online){% else %}var(--physical){% endif %}">
@@ -52,7 +58,6 @@
     📍 {{ entry.get_location_display }}
   </div>
   {% endif %}
-  <div style="font-size:.7rem;color:var(--muted)">{{ entry.students.count }} students</div>
   <div style="display:flex;gap:4px;margin-top:5px">
     <a href="{% url 'admin_timetable_edit' entry.pk %}" class="btn btn-secondary btn-sm" style="padding:2px 7px;font-size:.65rem">Edit</a>
     <a href="{% url 'admin_timetable_delete' entry.pk %}" class="btn btn-danger btn-sm" style="padding:2px 7px;font-size:.65rem">Del</a>

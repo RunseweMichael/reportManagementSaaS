@@ -78,3 +78,5 @@ LOGIN_REDIRECT_URL = '/tutor/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+STUDENT_API_URL = 'https://studentmgt.whalesharkengineering.com.ng/api/students/users/'

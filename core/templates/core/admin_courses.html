@@ -4,7 +4,11 @@
 {% block content %}
 <div class="flex justify-between items-center mb-6">
   <div><h1 class="page-title">Courses</h1><p class="page-sub">{{ courses.count }} course{{ courses.count|pluralize }}</p></div>
+  <form method="post" action="{% url 'admin_sync_courses' %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary">🔄 Sync Courses</button>
   <a href="{% url 'admin_course_create' %}" class="btn btn-primary">+ Add Course</a>
+</form>
 </div>
 <div class="table-wrap">
   <table>

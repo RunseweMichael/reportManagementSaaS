@@ -64,10 +64,12 @@
       <div class="user-role">Administrator</div>
     </div>
   </div>
-  <a href="{% url 'admin_change_password' %}" class="btn btn-ghost btn-sm"
-     style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
-  <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
-     style="width:100%;margin-top:6px;justify-content:center">Logout</a>
+  <div style="display: flex; flex-direction: column;">
+    <a href="{% url 'admin_change_password' %}" class="btn btn-ghost btn-sm"
+       style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
+    <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
+       style="width:100%;margin-top:6px;justify-content:center">Logout</a>
+  </div>
 </div>
 </aside>
 {% endblock %}

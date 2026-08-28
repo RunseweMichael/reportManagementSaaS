@@ -11,17 +11,13 @@ urlpatterns = [
 
     # Students
     path('tutor/students/',                     views.tutor_students,        name='tutor_students'),
-    path('tutor/students/add/',                 views.tutor_student_add,     name='tutor_student_add'),
     path('tutor/students/<int:pk>/',            views.tutor_student_detail,  name='tutor_student_detail'),
     path('tutor/students/<int:pk>/edit/',       views.tutor_student_edit,    name='tutor_student_edit'),
     path('tutor/students/<int:pk>/delete/',     views.tutor_student_delete,  name='tutor_student_delete'),
 
     # Classrooms
     path('tutor/classrooms/',                                views.tutor_classrooms,                     name='tutor_classrooms'),
-    path('tutor/classrooms/create/',                         views.tutor_classroom_create,               name='tutor_classroom_create'),
     path('tutor/classrooms/<int:pk>/',                       views.tutor_classroom_detail,               name='tutor_classroom_detail'),
-    path('tutor/classrooms/<int:pk>/edit/',                  views.tutor_classroom_edit,                 name='tutor_classroom_edit'),
-    path('tutor/classrooms/<int:pk>/delete/',                views.tutor_classroom_delete,               name='tutor_classroom_delete'),
     path('tutor/classrooms/<int:pk>/sessions/create/',       views.tutor_classroom_session_create,       name='tutor_classroom_session_create'),
     path('tutor/classrooms/<int:pk>/sessions/<int:spk>/attendance/', views.tutor_classroom_session_attendance, name='tutor_classroom_session_attendance'),
 
@@ -80,10 +76,17 @@ urlpatterns = [
 
     # Students
     path('admin-panel/students/',                views.admin_students,        name='admin_students'),
-    path('admin-panel/students/add/',            views.admin_student_add,     name='admin_student_add'),
     path('admin-panel/students/<int:pk>/',       views.admin_student_detail,  name='admin_student_detail'),
     path('admin-panel/students/<int:pk>/edit/',  views.admin_student_edit,    name='admin_student_edit'),
     path('admin-panel/students/<int:pk>/delete/', views.admin_student_delete, name='admin_student_delete'),
+    path('admin-panel/students/<int:pk>/assign/', views.admin_student_assign, name='admin_student_assign'),
+    path('admin-panel/students/sync/', views.admin_sync_students, name='admin_sync_students'),
+    path('admin-panel/classrooms/create/',                  views.admin_classroom_create,           name='admin_classroom_create'),
+    path('admin-panel/classrooms/<int:pk>/edit/',           views.admin_classroom_edit,             name='admin_classroom_edit'),
+    path('admin-panel/classrooms/<int:pk>/delete/',         views.admin_classroom_delete,           name='admin_classroom_delete'),
+    path('admin-panel/classrooms/<int:pk>/manage-students/',views.admin_classroom_manage_students,  name='admin_classroom_manage_students'),
+
+
 
     # Classrooms
     path('admin-panel/classrooms/',          views.admin_classrooms,        name='admin_classrooms'),
@@ -108,6 +111,7 @@ urlpatterns = [
     path('admin-panel/courses/<int:course_pk>/topics/create/',             views.admin_topic_create, name='admin_topic_create'),
     path('admin-panel/courses/<int:course_pk>/topics/<int:pk>/edit/',      views.admin_topic_edit,   name='admin_topic_edit'),
     path('admin-panel/courses/<int:course_pk>/topics/<int:pk>/delete/',    views.admin_topic_delete, name='admin_topic_delete'),
+    path('admin-panel/courses/sync/', views.admin_sync_courses, name='admin_sync_courses'),
 
 
     # Admin: Modules

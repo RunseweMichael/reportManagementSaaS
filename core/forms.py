@@ -56,110 +56,40 @@ class TutorForm(forms.ModelForm):
 
 # ─── Student forms ────────────────────────────────────────────────────────────
 
-class TutorAddStudentForm(forms.ModelForm):
-    """
-    Tutor adds a student and immediately places them in a classroom.
-    Classroom queryset is filtered to this tutor's classrooms in __init__.
-    Selecting a classroom auto-sets the course.
-    """
-    classroom = forms.ModelChoiceField(
-        queryset=Classroom.objects.none(),
-        required=True,
-        empty_label="— Select a classroom —",
-        label="Classroom",
-        help_text="The student will be enrolled in the course linked to this classroom."
-    )
-
-    class Meta:
-        model  = Student
-        fields = ['name', 'email', 'phone', 'mode', 'notes']
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3}),
-            'mode':  forms.Select(),
-        }
-
-    def __init__(self, tutor=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if tutor:
-            self.tutor = tutor
-            self.fields['classroom'].queryset = Classroom.objects.filter(
-                tutor=tutor, status='active'
-            ).select_related('course')
-            # Show course name next to classroom name in dropdown
-            self.fields['classroom'].label_from_instance = lambda obj: f"{obj.name} ({obj.course.name})"
-
-    def save(self, commit=True):
-        student          = super().save(commit=False)
-        student.tutor    = self.tutor
-        classroom        = self.cleaned_data['classroom']
-        student.active   = True
-        if commit:
-            student.save()
-            student.courses.add(classroom.course)
-            classroom.students.add(student)
-        return student
-
-
-class AdminAddStudentForm(forms.ModelForm):
-    """Admin version — can pick any tutor and any classroom."""
+# core/forms.py
+class AdminStudentAssignForm(forms.Form):
+    """Assign an already-synced student to a tutor and/or classroom."""
     tutor = forms.ModelChoiceField(
         queryset=Tutor.objects.filter(active=True),
-        required=True,
-        empty_label="— Select a tutor —",
+        required=False, empty_label="— Unassigned —"
     )
     classroom = forms.ModelChoiceField(
         queryset=Classroom.objects.filter(status='active').select_related('course', 'tutor'),
-        required=True,
-        empty_label="— Select a classroom —",
-        help_text="Student will be enrolled in this classroom and its course."
+        required=False, empty_label="— No classroom —"
     )
 
-    class Meta:
-        model  = Student
-        fields = ['name', 'email', 'phone', 'mode', 'notes']
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3}),
-            'mode':  forms.Select(),
-        }
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, student=None, **kwargs):
+        self.student = student
         super().__init__(*args, **kwargs)
         self.fields['classroom'].label_from_instance = (
-            lambda obj: f"{obj.name} ({obj.course.name}) — {obj.tutor.name}"
+            lambda o: f"{o.name} ({o.course.name}) — {o.tutor.name}"
         )
-
-    def save(self, commit=True):
-        student        = super().save(commit=False)
-        student.tutor  = self.cleaned_data['tutor']
-        classroom      = self.cleaned_data['classroom']
-        student.active = True
-        if commit:
-            student.save()
-            student.courses.add(classroom.course)
-            classroom.students.add(student)
-        return student
+        if student:
+            self.fields['tutor'].initial = student.tutor
+            self.fields['classroom'].initial = student.classrooms.first()
 
 
 class StudentEditForm(forms.ModelForm):
-    """Edit basic student info — tutor can also move student to different classroom."""
+    """Tutor can only touch local notes/progress — profile data is synced."""
     class Meta:
         model  = Student
-        fields = ['name', 'email', 'phone', 'mode', 'active', 'current_week', 'notes']
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3}),
-            'mode':  forms.Select(),
-        }
-
+        fields = ['current_week', 'notes']
 
 class AdminStudentEditForm(forms.ModelForm):
-    """Admin can also reassign tutor."""
+    """Admin can override active/notes locally; tutor/classroom go through Assign."""
     class Meta:
         model  = Student
-        fields = ['name', 'email', 'phone', 'tutor', 'mode', 'active', 'current_week', 'notes']
-        widgets = {
-            'notes': forms.Textarea(attrs={'rows': 3}),
-            'mode':  forms.Select(),
-        }
+        fields = ['active', 'current_week', 'notes']
 
 
 # ─── Course / Topic ───────────────────────────────────────────────────────────
@@ -196,11 +126,26 @@ class TopicForm(forms.ModelForm):
 
 # ─── Class / Session ──────────────────────────────────────────────────────────
 
+# core/forms.py
 class ClassroomSessionForm(forms.ModelForm):
     """Post a session into a classroom — course/tutor set automatically."""
+    topics = forms.ModelMultipleChoiceField(
+        queryset=Topic.objects.none(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'id': 'id_topics', 'size': 8}),
+        label="Topic(s) covered",
+        help_text="Hold Ctrl (⌘ on Mac) to select more than one — for days you covered several topics in one sitting.",
+    )
+    manual_topic = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Or type a topic manually",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. Q&A / revision (optional, for anything outside the curriculum)'}),
+    )
+
     class Meta:
         model  = Class
-        fields = ['topic', 'date', 'start_time', 'end_time', 'description', 'comment']
+        fields = ['date', 'start_time', 'end_time', 'description', 'comment']
         widgets = {
             'date':        forms.DateInput(attrs={'type': 'date'}),
             'start_time':  forms.TimeInput(attrs={'type': 'time'}),
@@ -212,11 +157,22 @@ class ClassroomSessionForm(forms.ModelForm):
     def __init__(self, classroom=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if classroom:
-            self.fields['topic'].queryset    = Topic.objects.filter(
+            self.fields['topics'].queryset = Topic.objects.filter(
                 course=classroom.course
             ).order_by('week', 'day')
-            self.fields['topic'].empty_label = "— Select topic —"
 
+        # Pre-fill on edit
+        if self.instance.pk:
+            self.fields['topics'].initial       = self.instance.topics.all()
+            self.fields['manual_topic'].initial = self.instance.manual_topic
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get('topics') and not cleaned.get('manual_topic'):
+            raise forms.ValidationError(
+                "Select at least one topic from the list, or type one in manually."
+            )
+        return cleaned
 
 class TutorClassForm(forms.ModelForm):
     """Standalone class (not inside a classroom) — scoped to tutor."""
@@ -263,12 +219,10 @@ class TutorClassForm(forms.ModelForm):
 class TimetableEntryForm(forms.ModelForm):
     class Meta:
         model  = TimetableEntry
-        fields = ['tutor', 'course', 'day_of_week', 'start_time', 'end_time', 'subject', 'notes', 'students','location']
+        fields = ['tutor', 'course', 'day_of_week', 'start_time', 'end_time', 'location']
         widgets = {
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
             'end_time':   forms.TimeInput(attrs={'type': 'time'}),
-            'students':   forms.CheckboxSelectMultiple(),
-            'notes':      forms.Textarea(attrs={'rows': 2}),
             'location': forms.Select(attrs={'id': 'id_location'}),
         }
     
@@ -277,12 +231,10 @@ class TimetableEntryForm(forms.ModelForm):
 class TutorTimetableEntryForm(forms.ModelForm):
     class Meta:
         model  = TimetableEntry
-        fields = ['course', 'day_of_week', 'start_time', 'end_time','location', 'subject', 'notes', 'students']
+        fields = ['course', 'day_of_week', 'start_time', 'end_time','location']
         widgets = {
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
             'end_time':   forms.TimeInput(attrs={'type': 'time'}),
-            'students':   forms.CheckboxSelectMultiple(),
-            'notes':      forms.Textarea(attrs={'rows': 2}),
             'location': forms.Select(attrs={'id': 'id_location'}),
         }
 
@@ -301,20 +253,33 @@ class TutorTimetableEntryForm(forms.ModelForm):
 
 # ─── Classroom ────────────────────────────────────────────────────────────────
 
+# class ClassroomForm(forms.ModelForm):
+#     class Meta:
+#         model  = Classroom
+#         fields = ['name', 'course', 'status', 'start_date', 'end_date', 'description']
+#         widgets = {
+#             'start_date':  forms.DateInput(attrs={'type': 'date'}),
+#             'end_date':    forms.DateInput(attrs={'type': 'date'}),
+#             'description': forms.Textarea(attrs={'rows': 3}),
+#         }
+
+#     def __init__(self, tutor=None, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if tutor:
+#             self.fields['course'].queryset = Course.objects.all()
+
+# core/forms.py
 class ClassroomForm(forms.ModelForm):
+    tutor = forms.ModelChoiceField(queryset=Tutor.objects.filter(active=True))
+
     class Meta:
         model  = Classroom
-        fields = ['name', 'course', 'status', 'start_date', 'end_date', 'description']
+        fields = ['name', 'course', 'tutor', 'status', 'start_date', 'end_date', 'description']
         widgets = {
             'start_date':  forms.DateInput(attrs={'type': 'date'}),
             'end_date':    forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(attrs={'rows': 3}),
         }
-
-    def __init__(self, tutor=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if tutor:
-            self.fields['course'].queryset = Course.objects.all()
 
 
 # ─── Reports ──────────────────────────────────────────────────────────────────

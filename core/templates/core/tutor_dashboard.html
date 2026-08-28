@@ -8,8 +8,6 @@
     <p class="page-sub">Week of {{ week_start|date:"M d" }} – {{ week_end|date:"M d, Y" }}</p>
   </div>
   <div class="flex gap-2">
-    <a href="{% url 'tutor_classroom_create' %}" class="btn btn-secondary">+ New Classroom</a>
-    <a href="{% url 'tutor_class_create' %}"     class="btn btn-primary">+ New Session</a>
   </div>
 </div>
 
@@ -23,7 +21,6 @@
   <div class="stat-card" style="--glow-color:var(--accent2)">
     <div class="stat-label">Active Classrooms</div>
     <div class="stat-value">{{ classrooms.count }}</div>
-    <div class="stat-sub"><a href="{% url 'tutor_classrooms' %}" style="color:var(--accent);font-size:.78rem">Manage →</a></div>
   </div>
   <div class="stat-card" style="--glow-color:var(--accent3)">
     <div class="stat-label">Active Students</div>
@@ -53,7 +50,6 @@
           <div class="text-muted text-sm">{{ cr.course.name }} · {{ cr.students.count }} students · Week {{ cr.current_week }}</div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="tag" style="letter-spacing:.08em">{{ cr.join_code }}</span>
           <span style="color:var(--accent)">→</span>
         </div>
       </div>
@@ -66,7 +62,6 @@
     <div class="empty-state">
       <div class="icon">◈</div>
       <p>No active classrooms.</p>
-      <a href="{% url 'tutor_classroom_create' %}" class="btn btn-primary btn-sm" style="margin-top:12px">Create One</a>
     </div>
     {% endif %}
   </div>

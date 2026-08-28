@@ -7,7 +7,6 @@
     <h1 class="page-title">My Students</h1>
     <p class="page-sub">{{ students.count }} student{{ students.count|pluralize }} assigned to you</p>
   </div>
-  <a href="{% url 'tutor_student_add' %}" class="btn btn-primary">+ Add Student</a>
 </div>
 
 {% if students %}
@@ -53,7 +52,6 @@
       <td class="flex gap-2">
         <a href="{% url 'tutor_student_detail' s.pk %}" class="btn btn-primary btn-sm">View</a>
         <a href="{% url 'tutor_student_edit' s.pk %}"    class="btn btn-secondary btn-sm">Edit</a>
-        <a href="{% url 'tutor_student_delete' s.pk %}"  class="btn btn-danger btn-sm">Del</a>
       </td>
     </tr>
     {% endfor %}

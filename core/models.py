@@ -6,12 +6,21 @@ from django.utils import timezone
 from datetime import datetime, date as date_type, timedelta
 
 
+# core/models.py
 class Course(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     code = models.CharField(max_length=20, unique=True)
     duration_weeks = models.PositiveIntegerField(default=12)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # ── new: sync fields ──
+    external_id   = models.PositiveIntegerField(unique=True, null=True, blank=True, db_index=True)
+    price         = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    duration      = models.PositiveIntegerField(null=True, blank=True)  # raw value from API
+    skills        = models.CharField(max_length=500, blank=True)
+    resource_link = models.URLField(max_length=500, blank=True)
+    is_synced     = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -20,8 +29,11 @@ class Course(models.Model):
 class Module(models.Model):
     course      = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
     name        = models.CharField(max_length=255)
-    order       = models.PositiveIntegerField(default=1, help_text="Display order within the course")
+    order       = models.PositiveIntegerField(default=1)
     description = models.TextField(blank=True)
+
+    # ── new ──
+    external_id = models.PositiveIntegerField(unique=True, null=True, blank=True, db_index=True)
 
     class Meta:
         ordering = ['order']
@@ -83,8 +95,11 @@ class Tutor(models.Model):
         return self.user.email if self.user else ''
 
 
+# core/models.py
 class Student(models.Model):
     MODE_CHOICES = [('online', 'Online'), ('physical', 'Physical')]
+
+    # ── existing fields stay exactly as they are ──
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(blank=True)
@@ -96,6 +111,16 @@ class Student(models.Model):
     current_week = models.PositiveIntegerField(default=1)
     enrolled_at = models.DateField(auto_now_add=True)
     notes = models.TextField(blank=True)
+
+    # ── new: sync bookkeeping (all nullable/blank so no existing row breaks) ──
+    external_id = models.PositiveIntegerField(unique=True, null=True, blank=True, db_index=True)
+    source_course_name = models.CharField(max_length=255, blank=True)
+    center = models.CharField(max_length=50, blank=True)
+    amount_paid = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    amount_owed = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    next_due_date = models.DateField(null=True, blank=True)
+    is_synced = models.BooleanField(default=False)
+    last_synced_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -209,18 +234,20 @@ class Classroom(models.Model):
 
 
 class Class(models.Model):
-    course     = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="classes")
-    tutor      = models.ForeignKey(Tutor, on_delete=models.CASCADE, related_name="classes")
-    classroom  = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name="sessions")
-    topic      = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True, related_name="classes")
-    date       = models.DateField()
-    start_time = models.TimeField(null=True, blank=True)
-    end_time   = models.TimeField(null=True, blank=True)
-    description = models.TextField(blank=True)
-    comment    = models.TextField(blank=True)
-    code       = models.CharField(max_length=10, unique=True, editable=False, blank=True)
-    students   = models.ManyToManyField(Student, related_name="classes", blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    course       = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="classes")
+    tutor        = models.ForeignKey(Tutor, on_delete=models.CASCADE, related_name="classes")
+    classroom    = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name="sessions")
+    topic        = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True, related_name="classes")  # kept as "primary topic" for old reads
+    topics       = models.ManyToManyField(Topic, blank=True, related_name="sessions_multi")   # ← new: multi-select
+    manual_topic = models.CharField(max_length=255, blank=True)                               # ← new: free-text fallback
+    date         = models.DateField()
+    start_time   = models.TimeField(null=True, blank=True)
+    end_time     = models.TimeField(null=True, blank=True)
+    description  = models.TextField(blank=True)
+    comment      = models.TextField(blank=True)
+    code         = models.CharField(max_length=10, unique=True, editable=False, blank=True)
+    students     = models.ManyToManyField(Student, related_name="classes", blank=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-date']
@@ -238,6 +265,13 @@ class Class(models.Model):
         total   = self.attendance_set.count()
         present = self.attendance_set.filter(attendance_status='Present').count()
         return {'total': total, 'present': present, 'absent': total - present}
+
+    def topics_display(self):
+        """Combined, human-readable list of everything covered this session."""
+        parts = [t.title for t in self.topics.all()]
+        if self.manual_topic:
+            parts.append(self.manual_topic)
+        return ', '.join(parts) if parts else (self.topic.title if self.topic else '—')
 
 
 class Attendance(models.Model):
@@ -284,6 +318,11 @@ class WeeklyReport(models.Model):
             class_instance__in=classes, attendance_status='Present'
         ).values_list('student_id', flat=True).distinct()
         self.students_attended = len(set(student_ids))
-        topics = [c.topic.title for c in classes if c.topic]
-        self.topics_covered = ', '.join(set(topics))
+
+        topics = []
+        for c in classes:
+            display = c.topics_display()
+            if display and display != '—':
+                topics.append(display)
+        self.topics_covered = ', '.join(sorted(set(topics)))
         self.save()

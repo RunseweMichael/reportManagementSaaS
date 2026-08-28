@@ -15,13 +15,12 @@ from .models import (
 )
 from .forms import (
     TutorLoginForm, TutorForm,
-    TutorAddStudentForm, AdminAddStudentForm,
     StudentEditForm, AdminStudentEditForm,
     CourseForm, TopicForm,
     TutorClassForm, ClassroomSessionForm,
     TimetableEntryForm, TutorTimetableEntryForm,
     WeeklyReportForm, AdminFeedbackForm,
-    ClassroomForm, TutorRegistrationForm, ModuleForm
+    ClassroomForm, TutorRegistrationForm, ModuleForm, AdminStudentAssignForm
 )
 
 
@@ -146,34 +145,62 @@ def tutor_students(request):
 
 
 @login_required
-def tutor_student_add(request):
-    """Tutor adds a student and picks which classroom to place them in."""
-    tutor = get_tutor_or_403(request)
-    if not tutor:
-        return redirect('login')
-
-    # Check tutor has at least one active classroom
-    if not Classroom.objects.filter(tutor=tutor, status='active').exists():
-        messages.warning(
-            request,
-            "You need at least one active classroom before adding students. "
-            "Create a classroom first."
-        )
-        return redirect('tutor_classroom_create')
-
-    form = TutorAddStudentForm(tutor=tutor, data=request.POST or None)
+@user_passes_test(is_admin)
+def admin_student_assign(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    form = AdminStudentAssignForm(request.POST or None, student=student)
     if request.method == 'POST' and form.is_valid():
-        student = form.save()
-        messages.success(
-            request,
-            f"{student.name} added and enrolled in "
-            f"'{form.cleaned_data['classroom'].name}'."
-        )
-        return redirect('tutor_student_detail', pk=student.pk)
+        tutor     = form.cleaned_data['tutor']
+        classroom = form.cleaned_data['classroom']
 
-    return render(request, 'core/tutor_student_add.html', {
-        'form': form, 'tutor': tutor
+        # pull student out of any classroom they were currently in
+        for cr in student.classrooms.all():
+            cr.students.remove(student)
+
+        if classroom:
+            classroom.students.add(student)
+            # tutor follows the classroom unless the admin explicitly picked one
+            student.tutor = tutor or classroom.tutor
+        else:
+            student.tutor = tutor
+
+        student.save()
+
+        messages.success(request, f"{student.name} assignment updated.")
+        return redirect('admin_student_detail', pk=pk)
+
+    return render(request, 'core/form.html', {
+        'form': form, 'title': f'Assign — {student.name}', 'back_url': 'admin_students'
     })
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_sync_students(request):
+    if request.method == 'POST':
+        from core.services.student_sync import sync_students
+        try:
+            created, updated = sync_students()
+            messages.success(request, f"Sync complete — {created} created, {updated} updated.")
+        except Exception as e:
+            messages.error(request, f"Sync failed: {e}")
+    return redirect('admin_students')
+
+
+
+# core/views.py
+@login_required
+@user_passes_test(is_admin)
+def admin_sync_courses(request):
+    if request.method == 'POST':
+        from core.services.course_sync import sync_courses, sync_modules
+        try:
+            cc, cu = sync_courses()
+            mc, mu = sync_modules()
+            messages.success(request, f"Courses: {cc} created/{cu} updated. Modules: {mc} created/{mu} updated.")
+        except Exception as e:
+            messages.error(request, f"Sync failed: {e}")
+    return redirect('admin_courses')
 
 
 @login_required
@@ -322,26 +349,7 @@ def tutor_classrooms(request):
     })
 
 
-@login_required
-def tutor_classroom_create(request):
-    tutor = get_tutor_or_403(request)
-    if not tutor:
-        return redirect('login')
-    form = ClassroomForm(tutor=tutor, data=request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        classroom       = form.save(commit=False)
-        classroom.tutor = tutor
-        classroom.save()
-        messages.success(
-            request,
-            f"Classroom '{classroom.name}' created. "
-            f"Join code: {classroom.join_code}. "
-            f"Now add students to it."
-        )
-        return redirect('tutor_classroom_detail', pk=classroom.pk)
-    return render(request, 'core/form.html', {
-        'form': form, 'title': 'Create Classroom', 'back_url': 'tutor_classrooms'
-    })
+
 
 
 @login_required
@@ -378,35 +386,10 @@ def tutor_classroom_detail(request, pk):
     })
 
 
-@login_required
-def tutor_classroom_edit(request, pk):
-    tutor     = get_tutor_or_403(request)
-    if not tutor:
-        return redirect('login')
-    classroom = get_object_or_404(Classroom, pk=pk, tutor=tutor)
-    form      = ClassroomForm(tutor=tutor, data=request.POST or None, instance=classroom)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, "Classroom updated.")
-        return redirect('tutor_classroom_detail', pk=pk)
-    return render(request, 'core/form.html', {
-        'form': form, 'title': f'Edit — {classroom.name}', 'back_url': 'tutor_classrooms'
-    })
 
 
-@login_required
-def tutor_classroom_delete(request, pk):
-    tutor     = get_tutor_or_403(request)
-    if not tutor:
-        return redirect('login')
-    classroom = get_object_or_404(Classroom, pk=pk, tutor=tutor)
-    if request.method == 'POST':
-        classroom.delete()
-        messages.success(request, "Classroom deleted.")
-        return redirect('tutor_classrooms')
-    return render(request, 'core/confirm_delete.html', {
-        'obj': classroom, 'back': 'tutor_classrooms'
-    })
+
+
 
 
 @login_required
@@ -417,12 +400,20 @@ def tutor_classroom_session_create(request, pk):
     classroom = get_object_or_404(Classroom, pk=pk, tutor=tutor)
     form      = ClassroomSessionForm(classroom=classroom, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        session           = form.save(commit=False)
-        session.tutor     = tutor
-        session.course    = classroom.course
-        session.classroom = classroom
+        topics = form.cleaned_data.get('topics')
+
+        session              = form.save(commit=False)
+        session.tutor        = tutor
+        session.course       = classroom.course
+        session.classroom    = classroom
+        session.manual_topic = form.cleaned_data.get('manual_topic', '')
+        session.topic        = topics.first() if topics else None  # mirror for legacy single-topic reads
         session.save()
+
+        if topics:
+            session.topics.set(topics)
         session.students.set(classroom.students.all())
+
         messages.success(request, "Session posted.")
         return redirect('tutor_classroom_detail', pk=pk)
     return render(request, 'core/form.html', {
@@ -975,19 +966,7 @@ def admin_students(request):
     })
 
 
-@login_required
-@user_passes_test(is_admin)
-def admin_student_add(request):
-    form = AdminAddStudentForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        student = form.save()
-        messages.success(
-            request,
-            f"{student.name} added and enrolled in "
-            f"'{form.cleaned_data['classroom'].name}'."
-        )
-        return redirect('admin_student_detail', pk=student.pk)
-    return render(request, 'core/admin_student_add.html', {'form': form})
+
 
 
 @login_required
@@ -1221,10 +1200,11 @@ def admin_report_detail(request, pk):
     classes = Class.objects.filter(
         tutor=report.tutor,
         date__range=[report.week_start, report.week_end]
-    ).select_related('course', 'topic', 'classroom').prefetch_related('students')
+    ).select_related('course', 'classroom').prefetch_related('students', 'topics')
 
     # Build per-course breakdown
     course_breakdown = {}
+    # core/views.py — inside admin_report_detail
     for cls in classes:
         cid = cls.course_id
         if cid not in course_breakdown:
@@ -1239,8 +1219,11 @@ def admin_report_detail(request, pk):
         entry = course_breakdown[cid]
         entry['sessions'].append(cls)
 
-        if cls.topic:
-            entry['topics'].add(cls.topic.title)
+        # was: if cls.topic: entry['topics'].add(cls.topic.title)
+        for t in cls.topics.all():
+            entry['topics'].add(t.title)
+        if cls.manual_topic:
+            entry['topics'].add(cls.manual_topic)
 
         for student in cls.students.all():
             entry['students'].add(student.pk)
@@ -1653,7 +1636,7 @@ def admin_student_report(request, pk):
     # Sessions + attendance
     sessions = Class.objects.filter(
         students=student
-    ).order_by('date').select_related('topic', 'course', 'classroom')
+    ).order_by('date').select_related('course', 'classroom').prefetch_related('topics')
 
     attendance_records = Attendance.objects.filter(
         student=student
@@ -1706,13 +1689,14 @@ def admin_student_report(request, pk):
     ]
 
     # Session log rows
+    # core/views.py — inside admin_student_report
     att_map = {a.class_instance_id: a for a in attendance_records}
     session_log = []
     for s in sessions:
         att = att_map.get(s.pk)
         session_log.append({
             'date':         s.date.strftime('%b %d, %Y'),
-            'topic':        s.topic.title if s.topic else s.course.name,
+            'topic':        s.topics_display(),   # was: s.topic.title if s.topic else s.course.name
             'classroom':    s.classroom.name if s.classroom else '—',
             'status':       att.attendance_status if att else 'No record',
             'status_class': att.attendance_status.lower() if att else 'draft',
@@ -2011,4 +1995,67 @@ def tutor_orphan_topic_delete(request, course_pk, pk):
         return redirect('tutor_course_detail', pk=course_pk)
     return render(request, 'core/confirm_delete.html', {
         'obj': topic, 'back': 'tutor_courses'
+    })
+
+
+
+
+# core/views.py — new admin views
+@login_required
+@user_passes_test(is_admin)
+def admin_classroom_create(request):
+    form = ClassroomForm(data=request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        classroom = form.save()
+        messages.success(request, f"Classroom '{classroom.name}' created. Join code: {classroom.join_code}")
+        return redirect('admin_classroom_detail', pk=classroom.pk)
+    return render(request, 'core/form.html', {
+        'form': form, 'title': 'Create Classroom', 'back_url': 'admin_classrooms'
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def admin_classroom_edit(request, pk):
+    classroom = get_object_or_404(Classroom, pk=pk)
+    form = ClassroomForm(data=request.POST or None, instance=classroom)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Classroom updated.")
+        return redirect('admin_classroom_detail', pk=pk)
+    return render(request, 'core/form.html', {
+        'form': form, 'title': f'Edit — {classroom.name}', 'back_url': 'admin_classrooms'
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def admin_classroom_delete(request, pk):
+    classroom = get_object_or_404(Classroom, pk=pk)
+    if request.method == 'POST':
+        classroom.delete()
+        messages.success(request, "Classroom deleted.")
+        return redirect('admin_classrooms')
+    return render(request, 'core/confirm_delete.html', {'obj': classroom, 'back': 'admin_classrooms'})
+
+@login_required
+@user_passes_test(is_admin)
+def admin_classroom_manage_students(request, pk):
+    classroom = get_object_or_404(Classroom, pk=pk)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        student = get_object_or_404(Student, pk=request.POST.get('student_id'))
+        if action == 'add':
+            classroom.students.add(student)
+            student.courses.add(classroom.course)
+            if not student.tutor:
+                student.tutor = classroom.tutor
+                student.save()
+            messages.success(request, f"{student.name} added to {classroom.name}.")
+        elif action == 'remove':
+            classroom.students.remove(student)
+            messages.success(request, f"{student.name} removed from {classroom.name}.")
+        return redirect('admin_classroom_detail', pk=pk)
+
+    available = Student.objects.exclude(pk__in=classroom.students.values_list('pk', flat=True))
+    return render(request, 'core/admin_classroom_manage_students.html', {
+        'classroom': classroom, 'available_students': available,
     })

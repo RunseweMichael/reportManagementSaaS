@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Paarch ICT ACademy{% endblock %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0d0f14;
@@ -23,51 +21,99 @@
   --radius: 12px;
   --radius-sm: 8px;
   --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --font: 'Times New Roman', Times, serif;
+  --sidebar-w: 240px;
+  --sidebar-w-collapsed: 72px;
 }
+
+/* ── Light theme override ─────────────────────────────────────────────── */
+html[data-theme="light"] {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface2: #f1f3f6;
+  --border: #e2e5ea;
+  --accent: #10b981;
+  --accent2: #6366f1;
+  --accent3: #f97316;
+  --warn: #ef4444;
+  --text: #1e2430;
+  --muted: #6b7280;
+  --online: #10b981;
+  --physical: #8b5cf6;
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:15px;-webkit-font-smoothing:antialiased}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .2s ease,color .2s ease}
 a{color:inherit;text-decoration:none}
-h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;font-weight:700;line-height:1.2}
+h1,h2,h3,h4,h5{font-family:var(--font);font-weight:700;line-height:1.2}
 
 /* Layout */
 .app-layout{display:flex;min-height:100vh}
-.sidebar{width:240px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100}
-.main-content{margin-left:240px;flex:1;min-height:100vh;display:flex;flex-direction:column}
-.top-bar{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50}
+.main-content{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column;transition:margin-left .2s ease}
+.top-bar{height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50;transition:background .2s ease,border-color .2s ease}
 .page-body{padding:28px;flex:1}
 
-/* Sidebar */
-.sidebar-logo{padding:20px 20px 12px;border-bottom:1px solid var(--border)}
-.sidebar-logo .logo-text{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sidebar-logo .logo-sub{font-size:.7rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+/* ── Sidebar — permanently dark regardless of theme, collapsible ───────── */
+.sidebar{
+  --sb-bg: #13161d;
+  --sb-bg2: #1a1e28;
+  --sb-border: #252a38;
+  --sb-text: #e2e8f0;
+  --sb-muted: #64748b;
+  width:var(--sidebar-w);min-height:100vh;
+  background:var(--sb-bg);
+  border-right:1px solid var(--sb-border);
+  color:var(--sb-text);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
+  overflow-x:hidden;
+  transition:width .2s ease;
+}
+.sidebar-logo{padding:20px 20px 12px;border-bottom:1px solid var(--sb-border);white-space:nowrap}
+.sidebar-logo .logo-text{font-family:var(--font);font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#6ee7b7,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-logo .logo-sub{font-size:.7rem;color:var(--sb-muted);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
 .sidebar-nav{padding:12px 10px;flex:1}
 .nav-section{margin-bottom:16px}
-.nav-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;padding:0 10px 6px;font-family:'Syne',sans-serif}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--muted);font-size:.88rem;font-weight:500;transition:.15s;cursor:pointer;margin-bottom:2px}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:linear-gradient(135deg,rgba(110,231,183,.15),rgba(129,140,248,.1));color:var(--accent);border:1px solid rgba(110,231,183,.2)}
-.nav-item .icon{width:16px;text-align:center;font-size:.95rem}
-.sidebar-footer{padding:14px;border-top:1px solid var(--border)}
-.user-pill{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);background:var(--surface2)}
-.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;color:#000;flex-shrink:0}
+.nav-label{font-size:.68rem;color:var(--sb-muted);text-transform:uppercase;letter-spacing:.1em;padding:0 10px 6px;font-family:var(--font);white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--sb-muted);font-size:.88rem;font-weight:500;transition:.15s;cursor:pointer;margin-bottom:2px;white-space:nowrap;overflow:hidden}
+.nav-item:hover{background:var(--sb-bg2);color:var(--sb-text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(110,231,183,.15),rgba(129,140,248,.1));color:#6ee7b7;border:1px solid rgba(110,231,183,.2)}
+.nav-item .icon{width:16px;text-align:center;font-size:.95rem;flex-shrink:0}
+.sidebar-footer{padding:14px;border-top:1px solid var(--sb-border);white-space:nowrap;overflow:hidden}
+.user-pill{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);background:var(--sb-bg2)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#6ee7b7,#818cf8);display:flex;align-items:center;justify-content:center;font-family:var(--font);font-weight:700;font-size:.85rem;color:#000;flex-shrink:0}
 .user-info{flex:1;min-width:0}
-.user-name{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.user-role{font-size:.7rem;color:var(--muted)}
+.user-name{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--sb-text)}
+.user-role{font-size:.7rem;color:var(--sb-muted)}
+
+/* Collapsed state — driven by a class on <body> so the toggle button
+   (a sibling of .app-layout) can react to it too */
+body.sidebar-collapsed .sidebar{width:var(--sidebar-w-collapsed)}
+body.sidebar-collapsed .main-content{margin-left:var(--sidebar-w-collapsed)}
+body.sidebar-collapsed .sidebar-logo{text-align:center;padding:20px 4px 12px}
+body.sidebar-collapsed .sidebar-logo .logo-text,
+body.sidebar-collapsed .sidebar-logo .logo-sub{display:none}
+body.sidebar-collapsed .nav-label{display:none}
+body.sidebar-collapsed .nav-item{justify-content:center;font-size:0;padding:10px 0}
+body.sidebar-collapsed .nav-item .icon{font-size:1.05rem}
+body.sidebar-collapsed .user-pill{justify-content:center;padding:8px 0;background:transparent}
+body.sidebar-collapsed .user-info{display:none}
+body.sidebar-collapsed .sidebar-footer .btn-ghost{display:none}
 
 /* Cards */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:background .2s ease,border-color .2s ease}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.card-title{font-family:var(--font);font-size:1rem;font-weight:700}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:background .2s ease,border-color .2s ease}
 .stat-card::before{content:'';position:absolute;inset:0;opacity:.04;background:var(--glow-color,var(--accent));border-radius:inherit}
 .stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-.stat-value{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-value{font-family:var(--font);font-size:2rem;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .stat-sub{font-size:.75rem;color:var(--muted);margin-top:4px}
 
 /* Badges */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:600;font-family:'Syne',sans-serif;text-transform:uppercase;letter-spacing:.05em}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:600;font-family:var(--font);text-transform:uppercase;letter-spacing:.05em}
 .badge-online{background:rgba(52,211,153,.15);color:var(--online);border:1px solid rgba(52,211,153,.25)}
 .badge-physical{background:rgba(167,139,250,.15);color:var(--physical);border:1px solid rgba(167,139,250,.25)}
 .badge-present{background:rgba(110,231,183,.15);color:var(--accent);border:1px solid rgba(110,231,183,.25)}
@@ -79,7 +125,7 @@ h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;font-weight:700;line-height:1.2}
 .badge-inactive{background:rgba(248,113,113,.12);color:var(--warn);border:1px solid rgba(248,113,113,.2)}
 
 /* Buttons */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-family:'Syne',sans-serif;font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:.15s;text-decoration:none;letter-spacing:.02em}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-family:var(--font);font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:.15s;text-decoration:none;letter-spacing:.02em}
 .btn-primary{background:linear-gradient(135deg,var(--accent),#34d399);color:#000}
 .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
 .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
@@ -87,22 +133,22 @@ h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;font-weight:700;line-height:1.2}
 .btn-danger{background:rgba(248,113,113,.15);color:var(--warn);border:1px solid rgba(248,113,113,.25)}
 .btn-danger:hover{background:rgba(248,113,113,.25)}
 .btn-sm{padding:5px 11px;font-size:.76rem}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-ghost{background:transparent;color:var(--sb-muted, var(--muted));border:1px solid var(--sb-border, var(--border))}
+.btn-ghost:hover{color:var(--sb-text, var(--text));border-color:var(--sb-muted, var(--muted))}
 
 /* Tables */
 .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
 table{width:100%;border-collapse:collapse;font-size:.875rem}
-th{background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;padding:12px 16px;text-align:left;font-weight:600;border-bottom:1px solid var(--border)}
+th{background:var(--surface2);color:var(--muted);font-family:var(--font);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;padding:12px 16px;text-align:left;font-weight:600;border-bottom:1px solid var(--border)}
 td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle}
 tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(255,255,255,.02)}
+tr:hover td{background:rgba(127,127,127,.05)}
 
 /* Forms */
 .form-wrap{max-width:640px}
 .form-group{margin-bottom:18px}
-.form-label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=number],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;transition:.15s;outline:none}
+.form-label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:6px;font-family:var(--font);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=number],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:var(--font);font-size:.9rem;transition:.15s;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,231,183,.1)}
 textarea{resize:vertical;min-height:80px}
 .checkbox-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)}
@@ -132,7 +178,7 @@ textarea{resize:vertical;min-height:80px}
 .empty-state .icon{font-size:2.5rem;margin-bottom:12px}
 .empty-state p{font-size:.9rem}
 .filter-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
-.filter-bar a{padding:6px 14px;border-radius:100px;border:1px solid var(--border);font-size:.8rem;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600}
+.filter-bar a{padding:6px 14px;border-radius:100px;border:1px solid var(--border);font-size:.8rem;color:var(--muted);font-family:var(--font);font-weight:600}
 .filter-bar a.active,.filter-bar a:hover{border-color:var(--accent);color:var(--accent);background:rgba(110,231,183,.08)}
 .progress-bar{height:6px;background:var(--surface2);border-radius:100px;overflow:hidden}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:100px;transition:.3s}
@@ -140,15 +186,56 @@ textarea{resize:vertical;min-height:80px}
 .section-head h2{font-size:1.05rem}
 .timetable-grid{display:grid;grid-template-columns:80px repeat(7,1fr);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .tg-cell{padding:10px 8px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:.78rem}
-.tg-header{background:var(--surface2);font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 8px;text-align:center}
+.tg-header{background:var(--surface2);font-family:var(--font);font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 8px;text-align:center}
 .tg-entry{background:linear-gradient(135deg,rgba(110,231,183,.1),rgba(129,140,248,.08));border:1px solid rgba(110,231,183,.2);border-radius:6px;padding:6px 8px;margin:3px 0}
 .tg-entry-online{background:linear-gradient(135deg,rgba(52,211,153,.1),rgba(52,211,153,.05));border-color:rgba(52,211,153,.3)}
 .tg-entry-physical{background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(167,139,250,.05));border-color:rgba(167,139,250,.3)}
-.week-label{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:.8rem;color:var(--muted);font-family:'Syne',sans-serif;font-weight:600}
+.week-label{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:.8rem;color:var(--muted);font-family:var(--font);font-weight:600}
+
+/* ── Theme toggle button ──────────────────────────────────────────────── */
+.theme-toggle{
+  position:fixed; bottom:20px; right:20px; z-index:200;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:var(--shadow);
+  font-size:1.15rem; color:var(--text);
+  transition:background .2s ease,border-color .2s ease,transform .15s ease;
+}
+.theme-toggle:hover{transform:translateY(-2px);border-color:var(--accent)}
+
+/* ── Sidebar collapse toggle button — anchored to the sidebar's edge ────
+   Hardcoded dark colors to match the permanently-dark sidebar it sits on. */
+.sidebar-collapse-btn{
+  position:fixed; top:24px; left:calc(var(--sidebar-w) - 12px); z-index:150;
+  width:24px; height:24px; border-radius:50%;
+  background:#1a1e28; border:1px solid #252a38; color:#e2e8f0;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:.7rem; line-height:1;
+  transition:left .2s ease, transform .2s ease, background .15s ease;
+}
+.sidebar-collapse-btn:hover{background:#252a38}
+body.sidebar-collapsed .sidebar-collapse-btn{
+  left:calc(var(--sidebar-w-collapsed) - 12px);
+  transform:rotate(180deg);
+}
 </style>
 {% block extra_style %}{% endblock %}
 </head>
 <body>
+
+<!-- Runs before paint to avoid a flash of the wrong theme / sidebar state -->
+<script>
+(function() {
+  if (localStorage.getItem('theme') === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+  if (localStorage.getItem('sidebarCollapsed') === 'true') {
+    document.body.classList.add('sidebar-collapsed');
+  }
+})();
+</script>
+
 {% block body %}
 <div class="app-layout">
   {% block sidebar %}{% endblock %}
@@ -167,5 +254,44 @@ textarea{resize:vertical;min-height:80px}
   </div>
 </div>
 {% endblock %}
+
+<button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Collapse / expand sidebar" aria-label="Toggle sidebar">‹</button>
+
+<button type="button" class="theme-toggle" id="themeToggle" title="Toggle light / dark theme" aria-label="Toggle theme">
+  <span id="themeIcon">☀</span>
+</button>
+
+<script>
+(function() {
+  var html = document.documentElement;
+  var icon = document.getElementById('themeIcon');
+  var themeBtn = document.getElementById('themeToggle');
+
+  function updateThemeIcon() {
+    var isLight = html.getAttribute('data-theme') === 'light';
+    icon.textContent = isLight ? '☾' : '☀';
+  }
+  updateThemeIcon();
+
+  themeBtn.addEventListener('click', function() {
+    var isLight = html.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      html.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.setAttribute('data-theme', 'light');
+      localStorage.setItem('theme', 'light');
+    }
+    updateThemeIcon();
+  });
+
+  var collapseBtn = document.getElementById('sidebarCollapseBtn');
+  collapseBtn.addEventListener('click', function() {
+    var collapsed = document.body.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('sidebarCollapsed', collapsed ? 'true' : 'false');
+  });
+})();
+</script>
+
 </body>
 </html>
