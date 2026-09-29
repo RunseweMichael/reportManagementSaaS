@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Server Error | PARACH ICT Academy</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1e293b;
+            padding: 20px;
+        }
+
+        .error-container {
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            background: white;
+            padding: 50px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .error-code {
+            font-size: 85px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .home-button {
+            display: inline-block;
+            padding: 13px 25px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .home-button:hover {
+            background: #1d4ed8;
+        }
+
+        .brand {
+            margin-top: 30px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <div class="error-code">500</div>
+
+        <h1>Something Went Wrong</h1>
+
+        <p>
+            We're sorry, but something unexpected happened.
+            Our team may need to look into this.
+            Please try again later.
+        </p>
+
+        <a href="/" class="home-button">
+            Return to Homepage
+        </a>
+
+        <div class="brand">
+            PARACH ICT Academy
+        </div>
+    </div>
+</body>
+</html>

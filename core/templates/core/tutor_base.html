@@ -1,76 +1,831 @@
 {% extends "core/base.html" %}
+
 {% block sidebar %}
+<style>
+  /* ==========================================
+   SIDEBAR LAYOUT FIX
+========================================== */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+
+    height: 100vh;
+    height: 100dvh;
+
+    overflow: hidden;
+}
+
+
+/* Brand stays at the top */
+.sidebar-logo {
+    flex-shrink: 0;
+}
+
+
+/* Navigation takes the available space */
+.sidebar-nav {
+    flex: 1;
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-top: 5px;
+    padding-bottom: 10px;
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+
+/* Footer stays visible */
+.sidebar-footer {
+    flex-shrink: 0;
+
+    background: #10131a;
+}
+
+
+/* Optional: make the scrollbar subtle */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+</style>
+
 <aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-text">Parach ICT Academy</div>
-    <div class="logo-sub">Tutor Portal</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">
-      <div class="nav-label">Overview</div>
-      <a href="{% url 'tutor_dashboard' %}"
-         class="nav-item {% if request.resolver_match.url_name == 'tutor_dashboard' %}active{% endif %}">
-        <span class="icon">⬡</span> Dashboard
-      </a>
+
+    <!-- =========================
+         SIDEBAR BRAND
+    ========================== -->
+
+    <div class="sidebar-logo">
+
+        <div class="logo-mark">
+            P
+        </div>
+
+        <div class="logo-content">
+            <div class="logo-text">
+                Parach ICT Academy
+            </div>
+
+            <div class="logo-sub">
+                Tutor Portal
+            </div>
+        </div>
+
     </div>
-    <div class="nav-section">
-      <div class="nav-label">Teaching</div>
-      <a href="{% url 'tutor_courses' %}"
-        class="nav-item {% if request.resolver_match.url_name in 'tutor_courses tutor_course_create tutor_course_detail tutor_course_edit tutor_course_delete tutor_module_create tutor_module_edit tutor_module_delete tutor_topic_create tutor_topic_edit tutor_topic_delete' %}active{% endif %}">
-        <span class="icon">▣</span> Courses & Topics
-      </a>
-      <a href="{% url 'tutor_classrooms' %}"
-         class="nav-item {% if 'classroom' in request.resolver_match.url_name %}active{% endif %}">
-        <span class="icon">◈</span> Classrooms
-      </a>
-      <a href="{% url 'tutor_students' %}"
-         class="nav-item {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
-        <span class="icon">◉</span> My Students
-      </a>
-      <a href="{% url 'tutor_classes' %}"
-         class="nav-item {% if 'class' in request.resolver_match.url_name and 'classroom' not in request.resolver_match.url_name %}active{% endif %}">
-        <span class="icon">▣</span> Sessions
-      </a>
+
+
+    <!-- =========================
+         NAVIGATION
+    ========================== -->
+
+    <nav class="sidebar-nav">
+
+        <!-- Overview -->
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Overview
+            </div>
+
+            <a
+                href="{% url 'tutor_dashboard' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'tutor_dashboard' %}active{% endif %}"
+                data-label="Dashboard"
+            >
+                <span class="icon">⬡</span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+        </div>
+
+
+        <!-- Teaching -->
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Teaching
+            </div>
+
+            <a
+                href="{% url 'tutor_courses' %}"
+                class="nav-item {% if request.resolver_match.url_name in 'tutor_courses tutor_course_create tutor_course_detail tutor_course_edit tutor_course_delete tutor_module_create tutor_module_edit tutor_module_delete tutor_topic_create tutor_topic_edit tutor_topic_delete' %}active{% endif %}"
+                data-label="Courses & Topics"
+            >
+                <span class="icon">▣</span>
+                <span class="nav-text">Courses & Topics</span>
+            </a>
+
+
+            <a
+                href="{% url 'tutor_classrooms' %}"
+                class="nav-item {% if 'classroom' in request.resolver_match.url_name %}active{% endif %}"
+                data-label="Classrooms"
+            >
+                <span class="icon">◈</span>
+                <span class="nav-text">Classrooms</span>
+            </a>
+
+
+            <a
+                href="{% url 'tutor_students' %}"
+                class="nav-item {% if 'student' in request.resolver_match.url_name %}active{% endif %}"
+                data-label="My Students"
+            >
+                <span class="icon">◉</span>
+                <span class="nav-text">My Students</span>
+            </a>
+
+
+            <a
+                href="{% url 'tutor_classes' %}"
+                class="nav-item {% if 'class' in request.resolver_match.url_name and 'classroom' not in request.resolver_match.url_name %}active{% endif %}"
+                data-label="Sessions"
+            >
+                <span class="icon">▣</span>
+                <span class="nav-text">Sessions</span>
+            </a>
+
+        </div>
+
+
+        <!-- Schedule -->
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Schedule
+            </div>
+
+            <a
+                href="{% url 'tutor_timetable' %}"
+                class="nav-item {% if 'timetable' in request.resolver_match.url_name %}active{% endif %}"
+                data-label="Timetable"
+            >
+                <span class="icon">▦</span>
+                <span class="nav-text">Timetable</span>
+            </a>
+
+        </div>
+
+
+        <!-- Reports -->
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Reports
+            </div>
+
+            <a
+                href="{% url 'tutor_reports' %}"
+                class="nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}"
+                data-label="Weekly Reports"
+            >
+                <span class="icon">▤</span>
+                <span class="nav-text">Weekly Reports</span>
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =========================
+         USER FOOTER
+    ========================== -->
+
+    <div class="sidebar-footer">
+
+        <div class="user-pill">
+
+            <div class="user-avatar">
+                {{ request.user.username|slice:":1"|upper }}
+            </div>
+
+            <div class="user-info">
+
+                <div class="user-name">
+                    {{ tutor.name }}
+                </div>
+
+                <div class="user-role">
+                    Tutor
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-actions">
+
+            <a
+                href="{% url 'tutor_change_password' %}"
+                class="btn btn-ghost btn-sm sidebar-action"
+                data-label="Change Password"
+            >
+                <span class="action-icon">⌑</span>
+                <span class="action-text">Change Password</span>
+            </a>
+
+
+            <a
+                href="{% url 'logout' %}"
+                class="btn btn-ghost btn-sm sidebar-action logout-action"
+                data-label="Logout"
+            >
+                <span class="action-icon">↪</span>
+                <span class="action-text">Logout</span>
+            </a>
+
+        </div>
+
     </div>
-    <div class="nav-section">
-      <div class="nav-label">Schedule</div>
-      <a href="{% url 'tutor_timetable' %}"
-         class="nav-item {% if 'timetable' in request.resolver_match.url_name %}active{% endif %}">
-        <span class="icon">▦</span> Timetable
-      </a>
-    </div>
-    <div class="nav-section">
-      <div class="nav-label">Reports</div>
-      <a href="{% url 'tutor_reports' %}"
-         class="nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
-        <span class="icon">▤</span> Weekly Reports
-      </a>
-    </div>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-pill">
-      <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
-      <div class="user-info">
-        <div class="user-name">{{ tutor.name }}</div>
-        <div class="user-role">Tutor</div>
-      </div>
-    </div>
-    <div style="display: flex; flex-direction: column;">
-     <a href="{% url 'tutor_change_password' %}" class="btn btn-ghost btn-sm"
-     style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
-    <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
-       style="width:100%;margin-top:8px;justify-content:center">Logout</a>
-    </div>
-  </div>
+
 </aside>
+
+
+<style>
+
+/* ==========================================
+   TUTOR SIDEBAR
+========================================== */
+
+.sidebar {
+    background: #10131a;
+}
+
+
+/* ==========================================
+   BRAND
+========================================== */
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    padding: 20px 18px;
+
+    min-height: 76px;
+}
+
+.logo-mark {
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            var(--accent2)
+        );
+
+    color: #0d1117;
+
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 800;
+
+    box-shadow:
+        0 5px 18px rgba(110, 231, 183, .1);
+}
+
+.logo-content {
+    min-width: 0;
+}
+
+.logo-text {
+    font-family: 'Syne', sans-serif;
+
+    font-size: .86rem;
+    font-weight: 800;
+
+    color: var(--sb-text);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.logo-sub {
+    color: var(--sb-text);
+
+    font-size: .67rem;
+    font-weight: 600;
+
+    margin-top: 2px;
+
+    letter-spacing: .03em;
+}
+
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+
+.sidebar-nav {
+    padding-top: 5px;
+}
+
+.nav-section {
+    margin-bottom: 18px;
+}
+
+.nav-label {
+    padding: 0 18px 7px;
+
+    color: var(--sb-text);
+
+    font-size: .62rem;
+    font-weight: 700;
+
+    text-transform: none;
+    letter-spacing: .09em;
+}
+
+.nav-item {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+
+    margin: 2px 9px;
+
+    padding: 9px 10px;
+
+    border-radius: 8px;
+
+    color: var(--sb-text);
+
+    font-size: .78rem;
+    font-weight: 500;
+
+    text-decoration: none;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        transform .2s ease;
+}
+
+.nav-item .icon {
+    width: 22px;
+    height: 22px;
+
+    flex: 0 0 22px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #64748b;
+
+    font-size: .88rem;
+
+    transition:
+        color .2s ease,
+        transform .2s ease;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, .035);
+
+    color: var(--sb-text);
+
+    transform: translateX(2px);
+}
+
+.nav-item:hover .icon {
+    color: var(--accent);
+
+    transform: scale(1.05);
+}
+
+.nav-item.active {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(110, 231, 183, .09),
+            rgba(129, 140, 248, .045)
+        );
+
+    color: var(--sb-text);
+
+    font-weight: 600;
+}
+
+.nav-item.active::before {
+    content: "";
+
+    position: absolute;
+
+    left: -1px;
+    top: 7px;
+    bottom: 7px;
+
+    width: 3px;
+
+    border-radius: 0 4px 4px 0;
+
+    background: var(--accent);
+
+    box-shadow:
+        0 0 10px rgba(110, 231, 183, .35);
+}
+
+.nav-item.active .icon {
+    color: var(--accent);
+}
+
+
+/* ==========================================
+   USER FOOTER
+========================================== */
+
+.sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, .055);
+
+    padding: 13px 11px 14px;
+}
+
+.user-pill {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    min-width: 0;
+
+    padding: 7px 8px;
+
+    border-radius: 9px;
+
+    background: rgba(255, 255, 255, .025);
+}
+
+.user-avatar {
+    width: 31px;
+    height: 31px;
+
+    flex: 0 0 31px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(110, 231, 183, .2),
+            rgba(129, 140, 248, .2)
+        );
+
+    border: 1px solid rgba(110, 231, 183, .18);
+
+    color: var(--accent);
+
+    font-family: 'Syne', sans-serif;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.user-info {
+    min-width: 0;
+}
+
+.user-name {
+    color: var(--sb-text);
+
+    font-size: .73rem;
+    font-weight: 600;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-role {
+    color: var(--sb-text);
+
+    font-size: .63rem;
+
+    margin-top: 1px;
+}
+
+
+/* ==========================================
+   SIDEBAR ACTIONS
+========================================== */
+
+.sidebar-actions {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    margin-top: 8px;
+}
+
+.sidebar-action {
+    width: 100%;
+
+    min-height: 32px;
+
+    justify-content: flex-start;
+
+    padding: 7px 9px !important;
+
+    color: var(--sb-text) !important;
+
+    font-size: .7rem !important;
+
+    border-color: transparent !important;
+
+    background: transparent !important;
+}
+
+.sidebar-action:hover {
+    background: rgba(255, 255, 255, .04) !important;
+
+    color: var(--sb-text) !important;
+
+    transform: none;
+}
+
+.action-icon {
+    width: 20px;
+
+    flex: 0 0 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: .9rem;
+}
+
+.logout-action:hover {
+    color: var(--sb-text) !important;
+
+    background: rgba(248, 113, 113, .055) !important;
+}
+
+
+/* ==========================================
+   TOP BAR
+========================================== */
+
+.top-bar {
+    min-height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 0 24px;
+
+    background: var(--surface);
+
+    border-bottom: 1px solid var(--border);
+}
+
+.topbar-breadcrumb {
+    color: var(--text);
+
+    font-family: 'Syne', sans-serif;
+
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+
+/* ==========================================
+   COLLAPSED SIDEBAR
+========================================== */
+
+body.sidebar-collapsed .sidebar-logo {
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.sidebar-collapsed .logo-content {
+    display: none;
+}
+
+body.sidebar-collapsed .nav-label {
+    display: none;
+}
+
+body.sidebar-collapsed .nav-item {
+    justify-content: center;
+
+    margin-left: 10px;
+    margin-right: 10px;
+
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.sidebar-collapsed .nav-item .icon {
+    margin: 0;
+}
+
+body.sidebar-collapsed .nav-item::before {
+    left: 0;
+}
+
+body.sidebar-collapsed .user-pill {
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.sidebar-collapsed .user-info {
+    display: none;
+}
+
+body.sidebar-collapsed .sidebar-action {
+    justify-content: center;
+
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+body.sidebar-collapsed .action-text {
+    display: none;
+}
+
+
+/* ==========================================
+   COLLAPSED TOOLTIP
+========================================== */
+
+body.sidebar-collapsed .nav-item[data-label]:hover::after,
+body.sidebar-collapsed .sidebar-action[data-label]:hover::after {
+    content: attr(data-label);
+
+    position: absolute;
+
+    left: calc(100% + 10px);
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    z-index: 1000;
+
+    white-space: nowrap;
+
+    padding: 7px 10px;
+
+    border-radius: 7px;
+
+    background: #202530;
+
+    border: 1px solid var(--border);
+
+    color: var(--sb-text);
+
+    font-size: .7rem;
+    font-weight: 600;
+
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+
+    pointer-events: none;
+}
+
+body.sidebar-collapsed .sidebar-action {
+    position: relative;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: var(--sidebar-w-collapsed);
+    }
+
+    .sidebar-logo {
+        justify-content: center;
+
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .logo-content,
+    .nav-label,
+    .user-info,
+    .action-text {
+        display: none;
+    }
+
+    .nav-item {
+        justify-content: center;
+
+        margin-left: 10px;
+        margin-right: 10px;
+
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .user-pill {
+        justify-content: center;
+
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .sidebar-action {
+        justify-content: center;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .top-bar {
+        padding: 0 15px;
+    }
+
+    .top-bar .badge {
+        font-size: .65rem;
+    }
+}
+
+</style>
+
 {% endblock %}
+
+
 {% block topbar %}
+
 <div class="top-bar">
-  <div style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;color:var(--muted)">
-    {% block breadcrumb %}Dashboard{% endblock %}
-  </div>
-  <div class="flex gap-2 items-center">
-    {% if tutor %}<span class="badge badge-{{ tutor.mode }}">{{ tutor.get_mode_display }}</span>{% endif %}
-  </div>
+
+    <div class="topbar-breadcrumb">
+        {% block breadcrumb %}
+            Dashboard
+        {% endblock %}
+    </div>
+
+    <div class="flex gap-2 items-center">
+
+        {% if tutor %}
+
+            <span class="badge badge-{{ tutor.mode }}">
+                {{ tutor.get_mode_display }}
+            </span>
+
+        {% endif %}
+
+        <button
+            type="button"
+            class="theme-toggle"
+            id="themeToggle"
+            title="Toggle light / dark theme"
+            aria-label="Toggle theme">
+
+            <span id="themeIcon">☀</span>
+
+        </button>
+
+    </div>
+
 </div>
+
 {% endblock %}

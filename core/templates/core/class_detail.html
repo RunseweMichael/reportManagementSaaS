@@ -1,60 +1,941 @@
 {% extends "core/tutor_base.html" %}
+
 {% block title %}Class Detail - Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Classes / Detail{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <h1 class="page-title">{{ cls.course.name }}</h1>
-    <p class="page-sub">{{ cls.date|date:"l, F d Y" }}{% if cls.start_time %} · {{ cls.start_time|time:"H:i" }}{% if cls.end_time %} – {{ cls.end_time|time:"H:i" }}{% endif %}{% endif %} · Code: <strong>{{ cls.code }}</strong></p>
-  </div>
-  <div class="flex gap-2">
-    <a href="{% url 'take_attendance' cls.pk %}" class="btn btn-primary">Take Attendance</a>
-    <!-- <a href="{% url 'tutor_class_edit' cls.pk %}" class="btn btn-secondary">Edit</a> -->
-    <a href="{% url 'tutor_class_delete' cls.pk %}" class="btn btn-danger">Delete</a>
-  </div>
-</div>
-<div class="grid-2 gap-4 mb-4">
-  <div class="card">
-    <div class="card-title mb-4">Class Info</div>
-    <table style="border:none">
-      <tr><td class="text-muted text-sm" style="padding:6px 0;width:120px">Topic</td><td>{% if cls.topic %}{{ cls.topic.title }}{% else %}—{% endif %}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">Students</td><td>{{ cls.students.count }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">Description</td><td>{{ cls.description|default:"—" }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">Comment</td><td>{{ cls.comment|default:"—" }}</td></tr>
-    </table>
-  </div>
-  <div class="card">
-    <div class="card-title mb-4">Attendance Summary</div>
-    {% with s=summary %}
-    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <div><div class="stat-label">Total</div><div style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800">{{ s.total }}</div></div>
-      <div><div class="stat-label">Present</div><div style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent)">{{ s.present }}</div></div>
-      <div><div class="stat-label">Absent</div><div style="font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800;color:var(--warn)">{{ s.absent }}</div></div>
+
+<style>
+  /* =========================================================
+     CLASS DETAIL PAGE
+  ========================================================= */
+
+  .class-detail-page {
+    width: 100%;
+  }
+
+  /* =========================================================
+     PAGE HEADER
+  ========================================================= */
+
+  .class-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .class-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .class-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 13px;
+
+    background: color-mix(in srgb, var(--accent2) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent2) 25%, var(--border));
+
+    color: var(--accent2);
+    font-size: 1.25rem;
+  }
+
+  .class-title {
+    margin: 0;
+
+    color: var(--text);
+
+    font-family: 'Syne', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .class-subtitle {
+    margin: 6px 0 0;
+
+    color: var(--muted);
+    font-size: .8rem;
+    line-height: 1.6;
+  }
+
+  .class-code {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 2px 7px;
+
+    border-radius: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+
+    color: var(--text);
+
+    font-family: monospace;
+    font-size: .72rem;
+  }
+
+  /* =========================================================
+     HEADER ACTIONS
+  ========================================================= */
+
+  .class-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .class-actions .btn {
+    white-space: nowrap;
+  }
+
+  /* =========================================================
+     INFORMATION GRID
+  ========================================================= */
+
+  .class-overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .class-info-card,
+  .attendance-summary-card {
+    min-width: 0;
+  }
+
+  /* =========================================================
+     CARD HEADERS
+  ========================================================= */
+
+  .detail-card-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    margin-bottom: 18px;
+  }
+
+  .detail-card-icon {
+    width: 30px;
+    height: 30px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 8px;
+
+    background: var(--surface2);
+    border: 1px solid var(--border);
+
+    font-size: .85rem;
+  }
+
+  .detail-card-title {
+    margin: 0;
+
+    color: var(--text);
+
+    font-family: 'Syne', sans-serif;
+    font-size: .88rem;
+    font-weight: 700;
+  }
+
+  /* =========================================================
+     CLASS INFORMATION
+  ========================================================= */
+
+  .class-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .class-info-row {
+    display: grid;
+    grid-template-columns: 105px 1fr;
+    gap: 16px;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid var(--border);
+  }
+
+  .class-info-row:first-child {
+    padding-top: 0;
+  }
+
+  .class-info-row:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .class-info-label {
+    color: var(--muted);
+    font-size: .7rem;
+    font-weight: 600;
+  }
+
+  .class-info-value {
+    color: var(--text);
+    font-size: .78rem;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  /* =========================================================
+     ATTENDANCE SUMMARY
+  ========================================================= */
+
+  .attendance-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+  }
+
+  .attendance-stat {
+    position: relative;
+
+    padding: 13px 12px;
+
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    overflow: hidden;
+  }
+
+  .attendance-stat::before {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 3px;
+    background: var(--border);
+  }
+
+  .attendance-stat.present::before {
+    background: var(--accent);
+  }
+
+  .attendance-stat.absent::before {
+    background: var(--warn);
+  }
+
+  .attendance-stat-label {
+    margin-bottom: 5px;
+
+    color: var(--muted);
+    font-size: .66rem;
+    font-weight: 600;
+    
+    letter-spacing: .04em;
+  }
+
+  .attendance-stat-value {
+    color: var(--text);
+
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .attendance-stat.present .attendance-stat-value {
+    color: var(--accent);
+  }
+
+  .attendance-stat.absent .attendance-stat-value {
+    color: var(--warn);
+  }
+
+  /* =========================================================
+     ATTENDANCE PROGRESS
+  ========================================================= */
+
+  .attendance-progress {
+    margin-top: 18px;
+  }
+
+  .attendance-progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 7px;
+  }
+
+  .attendance-progress-label {
+    color: var(--muted);
+    font-size: .68rem;
+    font-weight: 600;
+  }
+
+  .attendance-progress-value {
+    color: var(--text);
+    font-size: .7rem;
+    font-weight: 700;
+  }
+
+  .attendance-progress .progress-bar {
+    height: 7px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: var(--surface2);
+  }
+
+  .attendance-progress .progress-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+  }
+
+  /* =========================================================
+     RECORDS CARD
+  ========================================================= */
+
+  .records-card {
+    overflow: hidden;
+  }
+
+  .records-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+
+    padding-bottom: 16px;
+    margin-bottom: 0;
+
+    border-bottom: 1px solid var(--border);
+  }
+
+  .records-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .records-icon {
+    width: 31px;
+    height: 31px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 8px;
+
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+
+    color: var(--accent);
+    font-size: .85rem;
+  }
+
+  .records-title {
+    margin: 0;
+
+    color: var(--text);
+
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+  }
+
+  .records-count {
+    padding: 3px 8px;
+
+    border-radius: 99px;
+
+    background: var(--surface2);
+    border: 1px solid var(--border);
+
+    color: var(--muted);
+    font-size: .64rem;
+    font-weight: 700;
+  }
+
+  /* =========================================================
+     ATTENDANCE TABLE
+  ========================================================= */
+
+  .attendance-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .attendance-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+  }
+
+  .attendance-table th {
+    padding: 12px 14px;
+
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+
+    color: var(--muted);
+
+    font-size: .65rem;
+    font-weight: 700;
+    text-align: left;
+    
+    letter-spacing: .06em;
+  }
+
+  .attendance-table td {
+    padding: 12px 14px;
+
+    border-bottom: 1px solid var(--border);
+
+    color: var(--text);
+    font-size: .76rem;
+    vertical-align: middle;
+  }
+
+  .attendance-table tbody tr {
+    transition: background .15s ease;
+  }
+
+  .attendance-table tbody tr:hover {
+    background: var(--surface2);
+  }
+
+  .attendance-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .student-link {
+    color: var(--accent) !important;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .student-link:hover {
+    text-decoration: underline;
+  }
+
+  .attendance-note {
+    color: var(--muted);
+    font-size: .7rem;
+    line-height: 1.4;
+  }
+
+  /* =========================================================
+     EMPTY STATE
+  ========================================================= */
+
+  .attendance-empty {
+    padding: 45px 20px;
+    text-align: center;
+  }
+
+  .attendance-empty-icon {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    margin: 0 auto 12px;
+
+    border-radius: 12px;
+
+    background: var(--surface2);
+    border: 1px solid var(--border);
+
+    color: var(--muted);
+    font-size: 1.15rem;
+  }
+
+  .attendance-empty-title {
+    margin: 0;
+
+    color: var(--text);
+
+    font-family: 'Syne', sans-serif;
+    font-size: .88rem;
+    font-weight: 700;
+  }
+
+  .attendance-empty-text {
+    margin: 5px 0 0;
+
+    color: var(--muted);
+    font-size: .73rem;
+  }
+
+  .attendance-empty .btn {
+    margin-top: 15px;
+  }
+
+  /* =========================================================
+     RESPONSIVE
+  ========================================================= */
+
+  @media (max-width: 850px) {
+
+    .class-header {
+      flex-direction: column;
+    }
+
+    .class-actions {
+      width: 100%;
+    }
+
+    .class-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .class-overview {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+
+    .class-heading {
+      gap: 10px;
+    }
+
+    .class-icon {
+      width: 40px;
+      height: 40px;
+      flex-basis: 40px;
+      font-size: 1rem;
+    }
+
+    .class-title {
+      font-size: 1.15rem;
+    }
+
+    .class-subtitle {
+      font-size: .72rem;
+    }
+
+    .class-actions {
+      flex-direction: column;
+    }
+
+    .class-actions .btn {
+      width: 100%;
+    }
+
+    .attendance-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .class-info-row {
+      grid-template-columns: 85px 1fr;
+      gap: 10px;
+    }
+  }
+</style>
+
+
+<div class="class-detail-page">
+
+  <!-- =====================================================
+       CLASS HEADER
+  ====================================================== -->
+
+  <div class="class-header">
+
+    <div class="class-heading">
+
+      <div class="class-icon">
+        📚
+      </div>
+
+      <div>
+
+        <h1 class="class-title">
+          {{ cls.course.name }}
+        </h1>
+
+        <p class="class-subtitle">
+
+          {{ cls.date|date:"l, F d Y" }}
+
+          {% if cls.start_time %}
+            · {{ cls.start_time|time:"H:i" }}
+
+            {% if cls.end_time %}
+              – {{ cls.end_time|time:"H:i" }}
+            {% endif %}
+
+          {% endif %}
+
+          · Code:
+
+          <span class="class-code">
+            {{ cls.code }}
+          </span>
+
+        </p>
+
+      </div>
+
     </div>
-    {% if s.total > 0 %}<div class="progress-bar" style="margin-top:12px"><div class="progress-bar-fill" style="width:{% widthratio s.present s.total 100 %}%"></div></div>{% endif %}
-    {% endwith %}
+
+
+    <!-- ACTIONS -->
+
+    <div class="class-actions">
+
+      <a href="{% url 'take_attendance' cls.pk %}"
+         class="btn btn-primary">
+        Take Attendance
+      </a>
+
+      <!-- <a href="{% url 'tutor_class_edit' cls.pk %}"
+           class="btn btn-secondary">
+        Edit
+      </a> -->
+
+      <a href="{% url 'tutor_class_delete' cls.pk %}"
+         class="btn btn-danger">
+        Delete
+      </a>
+
+    </div>
+
   </div>
-</div>
-<div class="card">
-  <div class="card-header"><div class="card-title">Attendance Records</div></div>
-  {% if attendance_records %}
-  <div class="table-wrap" style="border:none">
-    <table>
-      <thead><tr><th>Student</th><th>Mode</th><th>Status</th><th>Note</th></tr></thead>
-      <tbody>
-      {% for a in attendance_records %}
-      <tr>
-        <td><a href="{% url 'tutor_student_detail' a.student.pk %}" style="color:var(--accent)">{{ a.student.name }}</a></td>
-        <td><span class="badge badge-{{ a.student.mode }}">{{ a.student.get_mode_display }}</span></td>
-        <td><span class="badge badge-{{ a.attendance_status|lower }}">{{ a.attendance_status }}</span></td>
-        <td class="text-muted text-sm">{{ a.note|default:"—" }}</td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+
+
+  <!-- =====================================================
+       CLASS OVERVIEW
+  ====================================================== -->
+
+  <div class="class-overview">
+
+
+    <!-- CLASS INFO -->
+
+    <div class="card class-info-card">
+
+      <div class="detail-card-header">
+
+        <div class="detail-card-icon">
+          ℹ
+        </div>
+
+        <h2 class="detail-card-title">
+          Class Information
+        </h2>
+
+      </div>
+
+
+      <div class="class-info-list">
+
+        <div class="class-info-row">
+
+          <div class="class-info-label">
+            Topic
+          </div>
+
+          <div class="class-info-value">
+
+            {% if cls.topic %}
+              {{ cls.topic.title }}
+            {% else %}
+              —
+            {% endif %}
+
+          </div>
+
+        </div>
+
+
+        <div class="class-info-row">
+
+          <div class="class-info-label">
+            Students
+          </div>
+
+          <div class="class-info-value">
+            {{ cls.students.count }}
+          </div>
+
+        </div>
+
+
+        <div class="class-info-row">
+
+          <div class="class-info-label">
+            Description
+          </div>
+
+          <div class="class-info-value">
+            {{ cls.description|default:"—" }}
+          </div>
+
+        </div>
+
+
+        <div class="class-info-row">
+
+          <div class="class-info-label">
+            Comment
+          </div>
+
+          <div class="class-info-value">
+            {{ cls.comment|default:"—" }}
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ATTENDANCE SUMMARY -->
+
+    <div class="card attendance-summary-card">
+
+      <div class="detail-card-header">
+
+        <div class="detail-card-icon">
+          ✓
+        </div>
+
+        <h2 class="detail-card-title">
+          Attendance Summary
+        </h2>
+
+      </div>
+
+
+      {% with s=summary %}
+
+        <div class="attendance-stats">
+
+          <div class="attendance-stat">
+
+            <div class="attendance-stat-label">
+              Total
+            </div>
+
+            <div class="attendance-stat-value">
+              {{ s.total }}
+            </div>
+
+          </div>
+
+
+          <div class="attendance-stat present">
+
+            <div class="attendance-stat-label">
+              Present
+            </div>
+
+            <div class="attendance-stat-value">
+              {{ s.present }}
+            </div>
+
+          </div>
+
+
+          <div class="attendance-stat absent">
+
+            <div class="attendance-stat-label">
+              Absent
+            </div>
+
+            <div class="attendance-stat-value">
+              {{ s.absent }}
+            </div>
+
+          </div>
+
+        </div>
+
+
+        {% if s.total > 0 %}
+
+          <div class="attendance-progress">
+
+            <div class="attendance-progress-top">
+
+              <span class="attendance-progress-label">
+                Attendance rate
+              </span>
+
+              <span class="attendance-progress-value">
+                {% widthratio s.present s.total 100 %}%
+              </span>
+
+            </div>
+
+            <div class="progress-bar">
+
+              <div class="progress-bar-fill"
+                   style="width:{% widthratio s.present s.total 100 %}%">
+              </div>
+
+            </div>
+
+          </div>
+
+        {% endif %}
+
+      {% endwith %}
+
+    </div>
+
   </div>
-  {% else %}
-  <div class="empty-state"><div class="icon">▤</div><p>No attendance taken yet.</p><a href="{% url 'take_attendance' cls.pk %}" class="btn btn-primary" style="margin-top:12px">Take Attendance Now</a></div>
-  {% endif %}
+
+
+  <!-- =====================================================
+       ATTENDANCE RECORDS
+  ====================================================== -->
+
+  <div class="card records-card">
+
+    <div class="records-header">
+
+      <div class="records-heading">
+
+        <div class="records-icon">
+          ✓
+        </div>
+
+        <h2 class="records-title">
+          Attendance Records
+        </h2>
+
+      </div>
+
+      {% if attendance_records %}
+
+        <div class="records-count">
+          {{ attendance_records|length }}
+          record{{ attendance_records|length|pluralize }}
+        </div>
+
+      {% endif %}
+
+    </div>
+
+
+    {% if attendance_records %}
+
+      <div class="attendance-table-wrap">
+
+        <table class="attendance-table">
+
+          <thead>
+
+            <tr>
+              <th>Student</th>
+              <th>Mode</th>
+              <th>Status</th>
+              <th>Note</th>
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            {% for a in attendance_records %}
+
+              <tr>
+
+                <td>
+
+                  <a href="{% url 'tutor_student_detail' a.student.pk %}"
+                     class="student-link">
+
+                    {{ a.student.name }}
+
+                  </a>
+
+                </td>
+
+
+                <td>
+
+                  <span class="badge badge-{{ a.student.mode }}">
+                    {{ a.student.get_mode_display }}
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span class="badge badge-{{ a.attendance_status|lower }}">
+                    {{ a.attendance_status }}
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span class="attendance-note">
+                    {{ a.note|default:"—" }}
+                  </span>
+
+                </td>
+
+              </tr>
+
+            {% endfor %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    {% else %}
+
+      <div class="attendance-empty">
+
+        <div class="attendance-empty-icon">
+          ▤
+        </div>
+
+        <h3 class="attendance-empty-title">
+          No attendance recorded
+        </h3>
+
+        <p class="attendance-empty-text">
+          Attendance has not been taken for this class yet.
+        </p>
+
+        <a href="{% url 'take_attendance' cls.pk %}"
+           class="btn btn-primary">
+          Take Attendance Now
+        </a>
+
+      </div>
+
+    {% endif %}
+
+  </div>
+
 </div>
+
 {% endblock %}

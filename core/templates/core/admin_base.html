@@ -1,87 +1,1028 @@
+
 {% extends "core/base.html" %}
+
 {% block sidebar %}
+
 <aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-text">Parach ICT Academy</div>
-    <div class="logo-sub">Admin Panel</div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">
-      <div class="nav-label">Overview</div>
-      <a href="{% url 'admin_dashboard' %}"
-         class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-        <span class="icon">⬡</span> Dashboard
-      </a>
+
+    <!-- ==========================================
+         LOGO
+         ========================================== -->
+
+    <div class="sidebar-logo">
+
+        <div class="admin-logo-mark">
+            P
+        </div>
+
+        <div class="admin-logo-content">
+            <div class="logo-text">
+                Parach ICT Academy
+            </div>
+
+            <div class="logo-sub">
+                Administration
+            </div>
+        </div>
+
     </div>
 
-    <div class="nav-section">
-      <div class="nav-label">People</div>
-      <a href="{% url 'admin_tutors' %}"
-         class="nav-item {% if request.resolver_match.url_name in 'admin_tutors admin_tutor_create admin_tutor_detail admin_tutor_edit admin_tutor_delete' %}active{% endif %}">
-        <span class="icon">◈</span> Tutors
-      </a>
-      <a href="{% url 'admin_students' %}"
-         class="nav-item {% if request.resolver_match.url_name in 'admin_students admin_student_add admin_student_detail admin_student_edit admin_student_delete' %}active{% endif %}">
-        <span class="icon">◉</span> Students
-      </a>
+
+    <!-- ==========================================
+         NAVIGATION
+         ========================================== -->
+
+    <nav class="sidebar-nav">
+
+        <!-- Overview -->
+
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Overview
+            </div>
+
+            <a href="{% url 'admin_dashboard' %}"
+               class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+               data-label="Dashboard">
+
+                <span class="icon">⬡</span>
+
+                <span class="nav-text">
+                    Dashboard
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- People -->
+
+        <div class="nav-section">
+
+            <div class="nav-label">
+                People
+            </div>
+
+
+            <a href="{% url 'admin_tutors' %}"
+               class="nav-item {% if request.resolver_match.url_name in 'admin_tutors admin_tutor_create admin_tutor_detail admin_tutor_edit admin_tutor_delete' %}active{% endif %}"
+               data-label="Tutors">
+
+                <span class="icon">◈</span>
+
+                <span class="nav-text">
+                    Tutors
+                </span>
+
+            </a>
+
+
+            <a href="{% url 'admin_students' %}"
+               class="nav-item {% if request.resolver_match.url_name in 'admin_students admin_student_add admin_student_detail admin_student_edit admin_student_delete' %}active{% endif %}"
+               data-label="Students">
+
+                <span class="icon">◉</span>
+
+                <span class="nav-text">
+                    Students
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- Curriculum -->
+
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Curriculum
+            </div>
+
+
+            <a href="{% url 'admin_courses' %}"
+               class="nav-item {% if request.resolver_match.url_name in 'admin_courses admin_course_create admin_course_detail admin_course_edit admin_course_delete admin_module_create admin_module_edit admin_module_delete admin_topic_create admin_topic_edit admin_topic_delete' %}active{% endif %}"
+               data-label="Courses & Topics">
+
+                <span class="icon">▣</span>
+
+                <span class="nav-text">
+                    Courses & Topics
+                </span>
+
+            </a>
+
+
+            <a href="{% url 'admin_classrooms' %}"
+               class="nav-item {% if request.resolver_match.url_name in 'admin_classrooms admin_classroom_detail' %}active{% endif %}"
+               data-label="Classrooms">
+
+                <span class="icon">◈</span>
+
+                <span class="nav-text">
+                    Classrooms
+                </span>
+
+            </a>
+
+
+            <a href="{% url 'admin_timetable' %}"
+               class="nav-item {% if request.resolver_match.url_name in 'admin_timetable admin_timetable_create admin_timetable_edit admin_timetable_delete' %}active{% endif %}"
+               data-label="Timetable">
+
+                <span class="icon">▦</span>
+
+                <span class="nav-text">
+                    Timetable
+                </span>
+
+            </a>
+
+        </div>
+
+
+        <!-- Reports -->
+
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Reports
+            </div>
+
+
+            <a href="{% url 'admin_reports' %}"
+               class="nav-item {% if request.resolver_match.url_name in 'admin_reports admin_report_detail' %}active{% endif %}"
+               data-label="Weekly Reports">
+
+                <span class="icon">▤</span>
+
+                <span class="nav-text">
+                    Weekly Reports
+                </span>
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- ==========================================
+         SIDEBAR USER
+         ========================================== -->
+
+    <div class="sidebar-footer">
+
+        <div class="user-pill">
+
+            <div class="user-avatar admin-avatar">
+                {{ request.user.username|slice:":1"|upper }}
+            </div>
+
+
+            <div class="user-info">
+
+                <div class="user-name">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </div>
+
+                <div class="user-role">
+                    Administrator
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Account Actions -->
+
+        <div class="sidebar-actions">
+
+            <a href="{% url 'admin_change_password' %}"
+               class="btn btn-ghost btn-sm sidebar-action-btn"
+               data-label="Change Password">
+
+                <span class="action-icon">
+                    ⚙
+                </span>
+
+                <span class="action-text">
+                    Change Password
+                </span>
+
+            </a>
+
+
+            <a href="{% url 'logout' %}"
+               class="btn btn-ghost btn-sm sidebar-action-btn logout-action"
+               data-label="Logout">
+
+                <span class="action-icon">
+                    ↪
+                </span>
+
+                <span class="action-text">
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
     </div>
 
-    <div class="nav-section">
-      <div class="nav-label">Curriculum</div>
-      <a href="{% url 'admin_courses' %}"
-          class="nav-item {% if request.resolver_match.url_name in 'admin_courses admin_course_create admin_course_detail admin_course_edit admin_course_delete admin_module_create admin_module_edit admin_module_delete admin_topic_create admin_topic_edit admin_topic_delete' %}active{% endif %}">
-          <span class="icon">▣</span> Courses & Topics
-      </a>
-      
-      
-      <a href="{% url 'admin_classrooms' %}"
-         class="nav-item {% if request.resolver_match.url_name in 'admin_classrooms admin_classroom_detail' %}active{% endif %}">
-        <span class="icon">◈</span> Classrooms
-      </a>
-      <a href="{% url 'admin_timetable' %}"
-         class="nav-item {% if request.resolver_match.url_name in 'admin_timetable admin_timetable_create admin_timetable_edit admin_timetable_delete' %}active{% endif %}">
-        <span class="icon">▦</span> Timetable
-      </a>
-    </div>
-
-    <div class="nav-section">
-      <div class="nav-label">Reports</div>
-      <a href="{% url 'admin_reports' %}"
-         class="nav-item {% if request.resolver_match.url_name in 'admin_reports admin_report_detail' %}active{% endif %}">
-        <span class="icon">▤</span> Weekly Reports
-      </a>
-    </div>
-  </nav>
-
-  <div class="sidebar-footer">
-  <div class="user-pill">
-    <div class="user-avatar"
-         style="background:linear-gradient(135deg,var(--accent3),var(--accent2))">
-      {{ request.user.username|slice:":1"|upper }}
-    </div>
-    <div class="user-info">
-      <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-      <div class="user-role">Administrator</div>
-    </div>
-  </div>
-  <div style="display: flex; flex-direction: column;">
-    <a href="{% url 'admin_change_password' %}" class="btn btn-ghost btn-sm"
-       style="width:100%;margin-top:8px;justify-content:center">Change Password</a>
-    <a href="{% url 'logout' %}" class="btn btn-ghost btn-sm"
-       style="width:100%;margin-top:6px;justify-content:center">Logout</a>
-  </div>
-</div>
 </aside>
+
+
+<style>
+
+/* ==========================================
+   ADMIN SIDEBAR
+   ========================================== */
+
+.sidebar {
+
+    background:
+        linear-gradient(
+            180deg,
+            #11141b 0%,
+            #0d1016 100%
+        );
+
+    box-shadow:
+        8px 0 30px rgba(0,0,0,.12);
+
+    /* Keep the sidebar anchored to the viewport */
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    height: 100vh;
+    height: 100dvh;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+    z-index: 100;
+
+}
+
+
+/* ==========================================
+   LOGO
+   ========================================== */
+
+.sidebar-logo {
+
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    min-height: 74px;
+    flex-shrink: 0;
+
+    padding: 14px 16px;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.sidebar-logo::after {
+
+    content: "";
+
+    position: absolute;
+
+    width: 90px;
+    height: 90px;
+
+    right: -35px;
+    top: -45px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(110,231,183,.16),
+            transparent 70%
+        );
+
+    pointer-events: none;
+}
+
+
+.admin-logo-mark {
+
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            var(--accent2)
+        );
+
+    color: #07110d;
+
+    font-size: 1rem;
+    font-weight: 900;
+
+    box-shadow:
+        0 6px 18px rgba(110,231,183,.16);
+}
+
+
+.admin-logo-content {
+    min-width: 0;
+}
+
+
+.sidebar-logo .logo-text {
+
+    font-size: 1rem;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+}
+
+
+.sidebar-logo .logo-sub {
+
+    margin-top: 3px;
+
+    font-size: .62rem;
+
+    letter-spacing: .12em;
+
+    color: var(--sb-text);
+}
+
+
+/* ==========================================
+   NAVIGATION
+   ========================================== */
+
+.sidebar-nav {
+
+    /* Navigation uses the remaining height and scrolls independently */
+    flex: 1;
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 16px 10px;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,.15) transparent;
+}
+
+
+/* Custom scrollbar - Chrome, Edge, Safari */
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,.15);
+    border-radius: 10px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,.3);
+}
+
+
+.nav-section {
+
+    margin-bottom: 20px;
+}
+
+
+.nav-label {
+
+    padding-left: 11px;
+    margin-bottom: 7px;
+
+    font-size: .62rem;
+
+    letter-spacing: .12em;
+
+    color: var(--sb-text);
+
+}
+
+
+.nav-item {
+
+    position: relative;
+
+    min-height: 40px;
+
+    border: 1px solid transparent;
+
+    transition:
+        background .18s ease,
+        color .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
+
+}
+
+
+.nav-item:hover {
+
+    transform: translateX(2px);
+
+}
+
+
+/* Active indicator */
+
+.nav-item.active::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: -10px;
+    top: 8px;
+    bottom: 8px;
+
+    width: 3px;
+
+    border-radius: 0 4px 4px 0;
+
+    background:
+        linear-gradient(
+            180deg,
+            var(--accent),
+            var(--accent2)
+        );
+
+    box-shadow:
+        0 0 10px rgba(110,231,183,.35);
+
+}
+
+
+.nav-item.active {
+
+    box-shadow:
+        inset 0 0 20px rgba(110,231,183,.025);
+
+}
+
+
+.nav-item .icon {
+
+    width: 20px;
+
+    font-size: .95rem;
+
+    opacity: .9;
+
+}
+
+
+.nav-text {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+}
+
+
+/* ==========================================
+   USER FOOTER
+   ========================================== */
+
+.sidebar-footer {
+
+    /* Keep profile and account actions visible at the bottom */
+    flex-shrink: 0;
+
+    padding: 12px;
+
+    background: #0d1016;
+
+    border-top: 1px solid rgba(255,255,255,.06);
+
+}
+
+
+.user-pill {
+
+    padding: 9px;
+
+    border:
+        1px solid rgba(255,255,255,.045);
+
+    background:
+        rgba(255,255,255,.025);
+
+    transition:
+        background .2s ease,
+        border-color .2s ease;
+
+}
+
+
+.user-pill:hover {
+
+    background:
+        rgba(255,255,255,.045);
+
+    border-color:
+        rgba(255,255,255,.07);
+
+}
+
+
+.admin-avatar {
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent3),
+            var(--accent2)
+        ) !important;
+
+    color: #fff;
+
+}
+
+
+/* ==========================================
+   SIDEBAR ACTIONS
+   ========================================== */
+
+.sidebar-actions {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+    margin-top: 9px;
+
+}
+
+
+.sidebar-action-btn {
+
+    width: 100%;
+
+    justify-content: flex-start;
+
+    min-height: 34px;
+
+    border-color:
+        rgba(255,255,255,.055);
+
+}
+
+
+.sidebar-action-btn:hover {
+
+    background:
+        rgba(255,255,255,.045);
+
+}
+
+
+.action-icon {
+
+    width: 18px;
+
+    text-align: center;
+
+    font-size: .8rem;
+
+    flex-shrink: 0;
+
+}
+
+
+.action-text {
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+}
+
+
+/* Logout */
+
+.logout-action:hover {
+
+    color: var(--sb-text);
+
+    border-color:
+        rgba(248,113,113,.2);
+
+    background:
+        rgba(248,113,113,.06);
+
+}
+
+
+/* ==========================================
+   COLLAPSED SIDEBAR
+   ========================================== */
+
+body.sidebar-collapsed .sidebar-logo {
+
+    justify-content: center;
+
+    padding-left: 4px;
+    padding-right: 4px;
+
+}
+
+
+body.sidebar-collapsed .admin-logo-content {
+
+    display: none;
+
+}
+
+
+body.sidebar-collapsed .admin-logo-mark {
+
+    width: 36px;
+    height: 36px;
+
+}
+
+
+body.sidebar-collapsed .nav-text {
+
+    display: none;
+
+}
+
+
+body.sidebar-collapsed .nav-item {
+
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+
+}
+
+
+body.sidebar-collapsed .nav-item:hover {
+
+    transform: none;
+
+}
+
+
+body.sidebar-collapsed .nav-item.active::before {
+
+    left: -10px;
+
+}
+
+
+body.sidebar-collapsed .sidebar-actions {
+
+    gap: 5px;
+
+}
+
+
+body.sidebar-collapsed .sidebar-action-btn {
+
+    justify-content: center;
+
+    padding-left: 0;
+    padding-right: 0;
+
+}
+
+
+body.sidebar-collapsed .action-text {
+
+    display: none;
+
+}
+
+
+/* ==========================================
+   COLLAPSED TOOLTIP
+   ========================================== */
+
+@media (min-width: 901px) {
+
+    body.sidebar-collapsed .nav-item:hover::after,
+    body.sidebar-collapsed .sidebar-action-btn:hover::after {
+
+        content: attr(data-label);
+
+        position: absolute;
+
+        left: calc(100% + 12px);
+
+        top: 50%;
+
+        transform: translateY(-50%);
+
+        z-index: 500;
+
+        padding: 7px 10px;
+
+        border-radius: 7px;
+
+        background: #1a1e28;
+
+        border: 1px solid #252a38;
+
+        color: #e2e8f0;
+
+        font-size: .72rem;
+
+        font-weight: 600;
+
+        white-space: nowrap;
+
+        box-shadow:
+            0 8px 24px rgba(0,0,0,.25);
+
+        pointer-events: none;
+
+    }
+
+}
+
+
+/* ==========================================
+   TOP BAR
+   ========================================== */
+
+.top-bar {
+
+    min-width: 0;
+
+    backdrop-filter: blur(12px);
+
+    -webkit-backdrop-filter: blur(12px);
+
+    background:
+        color-mix(
+            in srgb,
+            var(--surface) 88%,
+            transparent
+        );
+
+}
+
+
+.admin-topbar {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+
+.admin-breadcrumb {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+}
+
+
+.admin-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+}
+
+
+.admin-badge::before {
+
+    content: "";
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background: var(--accent3);
+
+    box-shadow:
+        0 0 7px var(--accent3);
+
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+
+        width: var(--sidebar-w-collapsed);
+
+    }
+
+    .main-content {
+
+        margin-left: var(--sidebar-w-collapsed);
+
+    }
+
+    .sidebar-logo {
+
+        justify-content: center;
+
+        padding-left: 4px;
+        padding-right: 4px;
+
+    }
+
+    .admin-logo-content {
+
+        display: none;
+
+    }
+
+    .nav-label {
+
+        display: none;
+
+    }
+
+    .nav-item {
+
+        justify-content: center;
+
+        padding-left: 0;
+        padding-right: 0;
+
+        font-size: 0;
+
+    }
+
+    .nav-item .icon {
+
+        font-size: 1rem;
+
+    }
+
+    .nav-item.active::before {
+
+        left: -10px;
+
+    }
+
+    .user-pill {
+
+        justify-content: center;
+
+        padding-left: 0;
+        padding-right: 0;
+
+    }
+
+    .user-info {
+
+        display: none;
+
+    }
+
+    .sidebar-action-btn {
+
+        justify-content: center;
+
+        padding-left: 0;
+        padding-right: 0;
+
+    }
+
+    .action-text {
+
+        display: none;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .main-content {
+
+        margin-left: var(--sidebar-w-collapsed);
+
+    }
+
+    .top-bar {
+
+        padding-left: 14px;
+        padding-right: 14px;
+
+    }
+
+    .admin-badge {
+
+        font-size: .65rem;
+
+    }
+
+}
+
+</style>
+
 {% endblock %}
 
+
 {% block topbar %}
+
 <div class="top-bar">
-  <div style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:600;color:var(--muted)">
-    {% block breadcrumb %}Dashboard{% endblock %}
-  </div>
-  <span class="badge"
-        style="background:rgba(251,146,60,.15);color:var(--accent3);border:1px solid rgba(251,146,60,.25)">
-    Admin
-  </span>
+
+    <div class="admin-topbar">
+
+        <div class="admin-breadcrumb"
+             style="font-family:var(--font);font-size:.88rem;font-weight:600;color:var(--text)">
+
+            {% block breadcrumb %}
+                Dashboard
+            {% endblock %}
+
+        </div>
+
+    </div>
+
+
+    <div class="flex gap-2 items-center">
+
+        <span class="badge admin-badge"
+              style="
+                  background:rgba(251,146,60,.12);
+                  color:var(--text);
+                  border:1px solid rgba(251,146,60,.22);
+              ">
+
+            Admin
+
+        </span>
+
+        <button
+            type="button"
+            class="theme-toggle"
+            id="themeToggle"
+            title="Toggle light / dark theme"
+            aria-label="Toggle theme">
+
+            <span id="themeIcon">☀</span>
+
+        </button>
+
+    </div>
+
 </div>
+
 {% endblock %}

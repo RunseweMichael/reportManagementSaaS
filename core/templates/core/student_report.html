@@ -1,594 +1,1903 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Progress Report – Parach ICT Academy</title>
-{% load static %}
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  :root {
-    --brand:    #1d4ed8;
-    --brand2:   #2563eb;
-    --brand3:   #f59e0b;
-    --success:  #10b981;
-    --warn:     #f59e0b;
-    --danger:   #ef4444;
-    --dark:     #0f172a;
-    --surface:  #1e293b;
-    --surface2: #f8fafc;
-    --border:   #e2e8f0;
-    --muted:    #64748b;
-    --text:     #1e293b;
-  }
+    <title>Student Progress Report – Parach ICT Academy</title>
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+    {% load static %}
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: #f1f5f9;
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.6;
-  }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-  .page {
-    width: 794px;
-    margin: 32px auto;
-    background: #fff;
-    box-shadow: 0 4px 32px rgba(0,0,0,.12);
-    border-radius: 12px;
-    overflow: hidden;
-  }
+        :root {
+            --navy: #0b1220;
+            --navy-2: #111c31;
+            --blue: #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-soft: #eff6ff;
+            --blue-border: #dbeafe;
 
-  /* ── Header ── */
-  .header {
-    background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #0f172a 100%);
-    padding: 36px 40px 32px;
-    position: relative;
-    overflow: hidden;
-  }
-  .header::before {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 220px; height: 220px;
-    border-radius: 50%;
-    background: rgba(37,99,235,.22);
-  }
-  .header::after {
-    content: '';
-    position: absolute;
-    bottom: -40px; left: 40%;
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    background: rgba(29,78,216,.14);
-  }
-  .header-inner {
-    position: relative; z-index: 1;
-    display: flex; justify-content: space-between; align-items: flex-start;
-  }
-  .logo-block { display: flex; align-items: center; gap: 14px; }
+            --green: #059669;
+            --green-soft: #ecfdf5;
 
-  .logo-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, var(--brand), var(--brand2));
-    flex-shrink: 0;
-  }
-  .logo-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 12px;
-  }
+            --orange: #d97706;
+            --orange-soft: #fffbeb;
 
-  .logo-text { color: #fff; }
-  .logo-text .company { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; }
-  .logo-text .tagline { font-size: .75rem; color: rgba(255,255,255,.55); margin-top: 2px; }
+            --red: #dc2626;
+            --red-soft: #fef2f2;
 
-  .report-label { text-align: right; color: rgba(255,255,255,.7); }
-  .report-label .type {
-    font-family: 'Syne', sans-serif; font-size: .7rem;
-    text-transform: uppercase; letter-spacing: .12em;
-    color: var(--brand2); margin-bottom: 4px;
-  }
-  .report-label .date { font-size: .78rem; }
+            --text: #172033;
+            --muted: #64748b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
 
-  .student-hero {
-    margin-top: 28px; position: relative; z-index: 1;
-    display: flex; align-items: center; gap: 20px;
-  }
-  .student-avatar {
-    width: 64px; height: 64px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--brand), #8b5cf6);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: 1.6rem; color: #fff; flex-shrink: 0;
-    border: 3px solid rgba(255,255,255,.2);
-  }
-  .student-info .name {
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: 1.7rem; color: #fff; line-height: 1.1;
-  }
-  .student-info .course { font-size: .875rem; color: rgba(255,255,255,.65); margin-top: 5px; }
-  .student-info .meta { display: flex; gap: 16px; margin-top: 8px; }
-  .student-info .meta span {
-    font-size: .72rem; color: rgba(255,255,255,.5);
-    display: flex; align-items: center; gap: 4px;
-  }
-  .student-info .meta strong { color: rgba(255,255,255,.85); }
+            --white: #ffffff;
 
-  /* ── Stats bar ── */
-  .stats-bar {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    border-bottom: 1px solid var(--border);
-  }
-  .stat-item {
-    padding: 20px 24px;
-    border-right: 1px solid var(--border);
-    text-align: center;
-  }
-  .stat-item:last-child { border-right: none; }
-  .stat-num {
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: 1.9rem; line-height: 1;
-    background: linear-gradient(135deg, var(--brand), var(--brand2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .stat-label {
-    font-size: .72rem; color: var(--muted);
-    margin-top: 4px; text-transform: uppercase; letter-spacing: .06em;
-  }
+            --radius: 12px;
+            --shadow: 0 10px 35px rgba(15, 23, 42, .09);
+        }
 
-  /* ── Body ── */
-  .body { padding: 32px 40px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  .section { margin-bottom: 28px; }
-  .section-title {
-    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .8rem;
-    text-transform: uppercase; letter-spacing: .1em; color: var(--brand);
-    margin-bottom: 14px; padding-bottom: 8px;
-    border-bottom: 2px solid #dbeafe;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .section-title .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--brand), var(--brand2));
-    flex-shrink: 0;
-  }
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, .07), transparent 30%),
+                #eef2f7;
 
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .grid-2.overview-grid { gap: 14px; }
+            color: var(--text);
 
-  /* ── Info card ── */
-  .info-card {
-    background: var(--surface2); border-radius: 10px;
-    padding: 20px 20px; border: 1px solid var(--border);
-  }
-  .info-card .label {
-    font-size: .7rem; color: var(--muted);
-    text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px;
-  }
-  .info-card .value { font-weight: 600; font-size: .875rem; color: var(--text); }
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+        }
 
-  /* ── Attendance bars ── */
-  .att-block { margin-bottom: 10px; }
-  .att-row {
-    display: flex; justify-content: space-between;
-    align-items: center; margin-bottom: 5px;
-  }
-  .att-name { font-size: .8rem; font-weight: 500; }
-  .att-pct { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .85rem; }
-  .bar-track { height: 7px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
-  .bar-fill {
-    height: 100%; border-radius: 99px;
-    background: linear-gradient(90deg, var(--brand), var(--brand2));
-  }
-  .bar-fill.warn   { background: linear-gradient(90deg, var(--warn), #fb923c); }
-  .bar-fill.danger { background: linear-gradient(90deg, var(--danger), #f97316); }
+        /* =========================================================
+           PRINT BUTTON
+        ========================================================= */
 
-  /* ── Module list ── */
-  .module-list { display: flex; flex-direction: column; gap: 12px; }
-  .module-item {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 16px; border-radius: 8px;
-    border: 1px solid var(--border); background: #fafbff;
-  }
-  .module-num {
-    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--brand), #8b5cf6);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: .7rem; color: #fff;
-  }
-  .module-body { flex: 1; }
-  .module-body .module-title { font-weight: 700; font-size: .875rem; margin-bottom: 2px; }
-  .module-body .module-sub   { font-size: .72rem; color: var(--muted); margin-bottom: 8px; }
-  .module-body .module-topics {
-    display: flex; flex-wrap: wrap; gap: 4px;
-    max-height: 72px; overflow-y: auto;
-  }
+        .print-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
 
-  /* ── Session table ── */
-  .session-table { width: 100%; border-collapse: collapse; }
-  .session-table th {
-    background: #f1f5f9; font-size: .7rem; text-transform: uppercase;
-    letter-spacing: .06em; color: var(--muted); padding: 8px 12px;
-    text-align: left; border-bottom: 1px solid var(--border);
-  }
-  .session-table td {
-    padding: 8px 12px; border-bottom: 1px solid #f1f5f9;
-    font-size: .78rem; vertical-align: top;
-  }
-  .session-table tr:last-child td { border-bottom: none; }
+            width: fit-content;
 
-  /* ── Badges ── */
-  .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 99px;
-    font-size: .68rem; font-weight: 600;
-  }
-  .badge-present { background: #d1fae5; color: #065f46; }
-  .badge-absent  { background: #fee2e2; color: #991b1b; }
-  .badge-draft   { background: #f1f5f9; color: #64748b; }
+            margin: 24px auto 18px;
+            padding: 11px 22px;
 
-  /* ── Grade block ── */
-  .grade-block {
-    background: linear-gradient(135deg, #0f172a, #1d4ed8);
-    border-radius: 12px; padding: 20px 24px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .grade-letter {
-    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 3rem; line-height: 1;
-    background: linear-gradient(135deg, var(--brand2), var(--brand));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .grade-text .grade-label {
-    font-size: .7rem; text-transform: uppercase;
-    letter-spacing: .1em; color: rgba(255,255,255,.5);
-  }
-  .grade-text .grade-desc {
-    font-family: 'Syne', sans-serif; font-weight: 700;
-    color: #fff; font-size: .95rem; margin-top: 2px;
-  }
+            background: var(--navy);
+            color: white;
 
-  /* ── Tutor comment ── */
-  .comment-box {
-    background: #fafbff; border-left: 3px solid var(--brand);
-    border-radius: 0 8px 8px 0; padding: 14px 16px;
-    font-size: .82rem; line-height: 1.7; color: var(--text);
-    font-style: italic;
-  }
-  .comment-author {
-    margin-top: 10px; font-size: .72rem;
-    color: var(--muted); font-style: normal; font-weight: 600;
-  }
+            border: none;
+            border-radius: 9px;
 
-  /* ── Tags ── */
-  .tag {
-    display: inline-block; padding: 3px 10px; border-radius: 99px;
-    background: #ede9fe; color: #5b21b6;
-    font-size: .7rem; font-weight: 500; margin: 2px;
-  }
-  .tag-sm {
-    display: inline-block; padding: 2px 8px; border-radius: 99px;
-    background: #e0e7ff; color: #4338ca;
-    font-size: .68rem; font-weight: 500; margin: 2px;
-  }
+            cursor: pointer;
 
-  /* ── Footer ── */
-  .footer {
-    background: #f8fafc; border-top: 1px solid var(--border);
-    padding: 16px 40px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .footer .left { font-size: .72rem; color: var(--muted); }
-  .footer .left strong { color: var(--text); }
-  .footer .right { font-size: .68rem; color: var(--muted); text-align: right; }
-  .footer .page-num {
-    font-family: 'Syne', sans-serif; font-weight: 700;
-    font-size: .75rem; color: var(--brand);
-  }
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
 
-  /* ── Print ── */
-  @media print {
-    @page { size: A4; margin: 0; }
-    body {
-      background: #fff;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-    .page { margin: 0; box-shadow: none; border-radius: 0; width: 100%; }
-    .print-btn { display: none !important; }
-  }
+            box-shadow: 0 5px 18px rgba(15, 23, 42, .2);
 
-  .print-btn {
-    display: block;
-    width: fit-content;
-    margin: 24px auto 20px;
-    padding: 11px 32px;
-    background: linear-gradient(135deg, var(--brand), var(--brand2));
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Syne', sans-serif;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .25);
+        }
+
+
+        /* =========================================================
+           PAGE
+        ========================================================= */
+
+        .page {
+            width: 794px;
+
+            margin: 0 auto 40px;
+
+            background: var(--white);
+
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            box-shadow: var(--shadow);
+        }
+
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        .header {
+            position: relative;
+
+            padding: 34px 40px 38px;
+
+            background:
+                radial-gradient(
+                    circle at 85% 20%,
+                    rgba(59, 130, 246, .25),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    135deg,
+                    #08111f 0%,
+                    #10264b 55%,
+                    #172554 100%
+                );
+
+            color: white;
+
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+            height: 260px;
+
+            right: -120px;
+            top: -130px;
+
+            border-radius: 50%;
+
+            border: 35px solid rgba(255,255,255,.035);
+        }
+
+        .header::after {
+            content: "";
+
+            position: absolute;
+
+            width: 180px;
+            height: 180px;
+
+            left: 45%;
+            bottom: -130px;
+
+            border-radius: 50%;
+
+            background: rgba(37, 99, 235, .12);
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+
+        /* =========================================================
+           BRAND
+        ========================================================= */
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+
+            gap: 30px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .brand-logo {
+            width: 52px;
+            height: 52px;
+
+            border-radius: 11px;
+
+            overflow: hidden;
+
+            background: white;
+
+            border: 1px solid rgba(255,255,255,.15);
+
+            flex-shrink: 0;
+        }
+
+        .brand-logo img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+        }
+
+        .brand-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -.2px;
+        }
+
+        .brand-tagline {
+            margin-top: 2px;
+
+            color: rgba(255,255,255,.55);
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================================
+           REPORT META
+        ========================================================= */
+
+        .report-meta {
+            text-align: right;
+        }
+
+    .report-type {
+    color: #93c5fd;
+    font-size: 11px;
     font-weight: 700;
-    font-size: .875rem;
-    box-shadow: 0 4px 14px rgba(29,78,216,.35);
-  }
-</style>
+    letter-spacing: .13em;
+}
+
+        .report-date {
+            margin-top: 4px;
+
+            color: rgba(255,255,255,.58);
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================================
+           STUDENT HERO
+        ========================================================= */
+
+        .student-hero {
+            display: flex;
+            align-items: center;
+
+            gap: 18px;
+
+            margin-top: 30px;
+        }
+
+        .student-avatar {
+            width: 72px;
+            height: 72px;
+
+            border-radius: 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: linear-gradient(
+                135deg,
+                #2563eb,
+                #4f46e5
+            );
+
+            border: 3px solid rgba(255,255,255,.13);
+
+            color: white;
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 27px;
+            font-weight: 700;
+
+            flex-shrink: 0;
+        }
+
+        .student-name {
+            color: white;
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+
+            line-height: 1.1;
+            letter-spacing: -.7px;
+        }
+
+        .student-course {
+            margin-top: 5px;
+
+            color: rgba(255,255,255,.68);
+
+            font-size: 14px;
+        }
+
+        .student-meta {
+            display: flex;
+            flex-wrap: wrap;
+
+            gap: 7px;
+
+            margin-top: 10px;
+        }
+
+        .student-meta span {
+            padding: 4px 8px;
+
+            border-radius: 6px;
+
+            background: rgba(255,255,255,.07);
+            border: 1px solid rgba(255,255,255,.08);
+
+            color: rgba(255,255,255,.68);
+
+            font-size: 11px;
+        }
+
+        .student-meta strong {
+            color: white;
+        }
+
+
+        /* =========================================================
+           PERFORMANCE SUMMARY BAR
+        ========================================================= */
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            border-bottom: 1px solid var(--border);
+
+            background: white;
+        }
+
+        .stat-item {
+            position: relative;
+
+            padding: 20px 15px;
+
+            text-align: center;
+
+            border-right: 1px solid var(--border);
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-num {
+            font-family: 'Space Grotesk', sans-serif;
+
+            font-size: 25px;
+            font-weight: 700;
+
+            color: var(--navy);
+        }
+
+        .stat-label {
+            margin-top: 3px;
+
+            color: var(--muted);
+
+            font-size: 10px;
+            font-weight: 700;
+
+            
+            letter-spacing: .08em;
+        }
+
+
+        /* =========================================================
+           BODY
+        ========================================================= */
+
+        .body {
+            padding: 32px 40px 36px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+
+        /* =========================================================
+           SECTION TITLE
+        ========================================================= */
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            margin-bottom: 13px;
+
+            padding-bottom: 8px;
+
+            border-bottom: 1px solid var(--border);
+
+            color: var(--navy);
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .08em;
+        }
+
+        .section-title::after {
+            content: "";
+
+            flex: 1;
+
+            height: 1px;
+
+            background: var(--blue-border);
+        }
+
+        .section-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: var(--blue);
+
+            flex-shrink: 0;
+        }
+
+
+        /* =========================================================
+           GRID
+        ========================================================= */
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            gap: 20px;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            gap: 9px;
+        }
+
+
+        /* =========================================================
+           INFORMATION CARDS
+        ========================================================= */
+
+        .info-card {
+            padding: 13px 14px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 9px;
+
+            background: var(--light);
+        }
+
+        .info-card .label {
+            margin-bottom: 3px;
+
+            color: var(--muted);
+
+            font-size: 10px;
+            font-weight: 700;
+
+            
+            letter-spacing: .06em;
+        }
+
+        .info-card .value {
+            color: var(--text);
+
+            font-size: 14px;
+            font-weight: 600;
+
+            line-height: 1.45;
+        }
+
+
+        /* =========================================================
+           OVERALL ASSESSMENT
+        ========================================================= */
+
+        .assessment {
+            display: grid;
+            grid-template-columns: 1fr auto;
+
+            align-items: center;
+
+            min-height: 105px;
+
+            padding: 18px 20px;
+
+            border-radius: 11px;
+
+            background:
+                radial-gradient(
+                    circle at 90% 10%,
+                    rgba(59,130,246,.2),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #0b1220,
+                    #162a50
+                );
+
+            overflow: hidden;
+        }
+
+        .assessment-label {
+            color: rgba(255,255,255,.48);
+
+            font-size: 10px;
+            font-weight: 700;
+
+            
+            letter-spacing: .1em;
+        }
+
+        .assessment-description {
+            margin-top: 3px;
+
+            color: white;
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .grade {
+            color: #60a5fa;
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 54px;
+            font-weight: 700;
+
+            line-height: 1;
+        }
+
+        .summary-card {
+            margin-top: 9px;
+        }
+
+
+        /* =========================================================
+           ATTENDANCE
+        ========================================================= */
+
+        .attendance-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+
+            gap: 22px;
+        }
+
+        .attendance-main {
+            padding: 16px;
+
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .attendance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 7px;
+        }
+
+        .attendance-name {
+            color: var(--text);
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .attendance-percent {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .bar-track {
+            height: 7px;
+
+            border-radius: 99px;
+
+            overflow: hidden;
+
+            background: #e2e8f0;
+        }
+
+        .bar-fill {
+            height: 100%;
+
+            border-radius: inherit;
+
+            background: linear-gradient(
+                90deg,
+                #2563eb,
+                #4f46e5
+            );
+        }
+
+        .bar-fill.warn {
+            background: linear-gradient(
+                90deg,
+                #f59e0b,
+                #f97316
+            );
+        }
+
+        .bar-fill.danger {
+            background: linear-gradient(
+                90deg,
+                #ef4444,
+                #dc2626
+            );
+        }
+
+
+        /* Attendance mini stats */
+
+        .attendance-mini {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 7px;
+
+            margin-top: 13px;
+        }
+
+        .mini-stat {
+            padding: 9px;
+
+            border-radius: 8px;
+
+            background: var(--light);
+
+            border: 1px solid var(--border);
+
+            text-align: center;
+        }
+
+        .mini-stat-label {
+            color: var(--muted);
+
+            font-size: 9px;
+            font-weight: 700;
+
+            
+        }
+
+        .mini-stat-value {
+            margin-top: 2px;
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .present {
+            color: var(--green);
+        }
+
+        .absent {
+            color: var(--red);
+        }
+
+
+        /* =========================================================
+           CLASSROOM BREAKDOWN
+        ========================================================= */
+
+        .classroom-breakdown {
+            padding-top: 2px;
+        }
+
+        .classroom-stat {
+            margin-bottom: 13px;
+        }
+
+        .classroom-stat:last-child {
+            margin-bottom: 0;
+        }
+
+        .classroom-stat-head {
+            display: flex;
+            justify-content: space-between;
+
+            margin-bottom: 5px;
+        }
+
+        .classroom-name {
+            color: var(--text);
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .classroom-rate {
+            color: var(--muted);
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+
+        /* =========================================================
+           CURRICULUM
+        ========================================================= */
+
+        .module-list {
+            display: flex;
+            flex-direction: column;
+
+            gap: 9px;
+        }
+
+        .module-item {
+            display: flex;
+            align-items: flex-start;
+
+            gap: 12px;
+
+            padding: 13px;
+
+            border: 1px solid var(--border);
+            border-radius: 10px;
+
+            background: white;
+        }
+
+        .module-num {
+            width: 30px;
+            height: 30px;
+
+            border-radius: 8px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            background: var(--blue-soft);
+
+            border: 1px solid var(--blue-border);
+
+            color: var(--blue-dark);
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .module-body {
+            flex: 1;
+
+            min-width: 0;
+        }
+
+        .module-title {
+            color: var(--text);
+
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .module-sub {
+            margin-top: 2px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+        }
+
+        .module-topics {
+            display: flex;
+            flex-wrap: wrap;
+
+            gap: 4px;
+
+            margin-top: 7px;
+        }
+
+        .tag-sm {
+            display: inline-block;
+
+            padding: 3px 7px;
+
+            border-radius: 5px;
+
+            background: var(--blue-soft);
+
+            color: var(--blue-dark);
+
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+
+        /* =========================================================
+           TUTOR COMMENT
+        ========================================================= */
+
+        .comment-box {
+            padding: 17px 18px;
+
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--blue);
+
+            border-radius: 0 9px 9px 0;
+
+            background: var(--light);
+
+            color: var(--text);
+
+            font-size: 13px;
+
+            line-height: 1.7;
+        }
+
+        .comment-author {
+            margin-top: 9px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 700;
+
+            font-style: normal;
+        }
+
+
+        /* =========================================================
+           SESSION TABLE
+        ========================================================= */
+
+        .session-table {
+            width: 100%;
+
+            border-collapse: collapse;
+        }
+
+        .session-table th {
+            padding: 8px 10px;
+
+            background: var(--light);
+
+            border-bottom: 1px solid var(--border);
+
+            color: var(--muted);
+
+            font-size: 10px;
+            font-weight: 700;
+
+            text-align: left;
+
+           
+            letter-spacing: .06em;
+        }
+
+        .session-table td {
+            padding: 8px 10px;
+
+            border-bottom: 1px solid #f1f5f9;
+
+            font-size: 11px;
+
+            vertical-align: top;
+        }
+
+        .session-table tr:last-child td {
+            border-bottom: none;
+        }
+
+
+        /* =========================================================
+           BADGES
+        ========================================================= */
+
+        .badge {
+            display: inline-block;
+
+            padding: 3px 8px;
+
+            border-radius: 99px;
+
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .badge-present {
+            background: var(--green-soft);
+            color: #047857;
+        }
+
+        .badge-absent {
+            background: var(--red-soft);
+            color: #b91c1c;
+        }
+
+        .badge-draft {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 20px;
+
+            padding: 15px 40px;
+
+            background: var(--light);
+
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-left {
+            color: var(--muted);
+
+            font-size: 10px;
+
+            line-height: 1.6;
+        }
+
+        .footer-left strong {
+            color: var(--text);
+        }
+
+        .footer-right {
+            text-align: right;
+
+            color: var(--muted);
+
+            font-size: 10px;
+        }
+
+        .confidential {
+            color: var(--blue-dark);
+
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+
+            letter-spacing: .08em;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 850px) {
+
+            .page {
+                width: calc(100% - 20px);
+            }
+
+            .body {
+                padding: 25px;
+            }
+
+            .header {
+                padding: 28px 25px 32px;
+            }
+
+            .footer {
+                padding: 15px 25px;
+            }
+        }
+
+
+        @media (max-width: 650px) {
+
+            .top-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .report-meta {
+                text-align: left;
+            }
+
+            .student-name {
+                font-size: 23px;
+            }
+
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-item:nth-child(2) {
+                border-right: none;
+            }
+
+            .stat-item:nth-child(-n+2) {
+                border-bottom: 1px solid var(--border);
+            }
+
+            .grid-2,
+            .attendance-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .footer-right {
+                text-align: left;
+            }
+        }
+
+
+        /* =========================================================
+           PRINT
+        ========================================================= */
+
+        @media print {
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            html,
+            body {
+                width: 100%;
+
+                background: white !important;
+
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .print-btn {
+                display: none !important;
+            }
+
+            .page {
+                width: 100%;
+
+                margin: 0;
+
+                border-radius: 0;
+
+                box-shadow: none;
+            }
+
+            .section {
+                break-inside: avoid;
+            }
+
+            .module-item,
+            .info-card,
+            .assessment,
+            .attendance-main,
+            .comment-box {
+                break-inside: avoid;
+            }
+        }
+    </style>
 </head>
+
+
 <body>
 
-<button class="print-btn" onclick="window.print()">🖨 Download as PDF</button>
+    <!-- Print / PDF Button -->
 
-<div class="page">
+    <button
+        class="print-btn"
+        onclick="window.print()"
+    >
+        🖨
+        Download as PDF
+    </button>
 
-  <!-- ── HEADER ── -->
-  <div class="header">
-    <div class="header-inner">
-      <div class="logo-block">
-        <div class="logo-icon">
-          <img src="{% static 'core/images/parach.jpg' %}" alt="Parach ICT Academy Logo">
-        </div>
-        <div class="logo-text">
-          <div class="company">Parach ICT Academy</div>
-          <div class="tagline">Empowering the next generation of tech leaders</div>
-        </div>
-      </div>
-      <div class="report-label">
-        <div class="type">Student Progress Report</div>
-        <div class="date">Generated: {{ generated_date }}</div>
-      </div>
-    </div>
 
-    <div class="student-hero">
-      <div class="student-avatar">{{ student_initial }}</div>
-      <div class="student-info">
-        <div class="name">{{ student_name }}</div>
-        <div class="course">{{ course_name }}</div>
-        <div class="meta">
-          <span>📅 Enrolled <strong>{{ enrolled_date }}</strong></span>
-          <span>👤 Tutor: <strong>{{ tutor_name }}</strong></span>
-          <span>📍 <strong>{{ mode }}</strong></span>
-        </div>
-      </div>
-    </div>
-  </div>
+    <div class="page">
 
-  <!-- ── STATS BAR ── -->
-  <div class="stats-bar">
-    <div class="stat-item">
-      <div class="stat-num">{{ weeks_completed }}</div>
-      <div class="stat-label">Weeks Completed</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">{{ total_sessions }}</div>
-      <div class="stat-label">Sessions Attended</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">{{ topics_count }}</div>
-      <div class="stat-label">Topics Covered</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">{{ attendance_rate }}%</div>
-      <div class="stat-label">Attendance Rate</div>
-    </div>
-  </div>
 
-  <!-- ── BODY ── -->
-  <div class="body">
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
 
-    <!-- Student Overview + Grade -->
-    <div class="grid-2" style="margin-bottom:28px">
+        <header class="header">
 
-      <div>
-        <div class="section-title"><div class="dot"></div>Student Overview</div>
-        <div class="grid-2 overview-grid">
-          <div class="info-card">
-            <div class="label">Full Name</div>
-            <div class="value">{{ student_name }}</div>
-          </div>
-          <div class="info-card">
-            <div class="label">Mode</div>
-            <div class="value">{{ mode }}</div>
-          </div>
-          <div class="info-card">
-            <div class="label">Course</div>
-            <div class="value">{{ course_name }}</div>
-          </div>
-          <div class="info-card">
-            <div class="label">Classroom</div>
-            <div class="value">{{ classroom_name }}</div>
-          </div>
-          <div class="info-card">
-            <div class="label">Enrolled</div>
-            <div class="value">{{ enrolled_date }}</div>
-          </div>
-          <div class="info-card">
-            <div class="label">Current Week</div>
-            <div class="value">Week {{ current_week }}</div>
-          </div>
-        </div>
-      </div>
+            <div class="header-content">
 
-      <div>
-        <div class="section-title"><div class="dot"></div>Overall Assessment</div>
-        <div class="grade-block" style="margin-bottom:12px">
-          <div class="grade-text">
-            <div class="grade-label">Overall Grade</div>
-            <div class="grade-desc">{{ grade_label }}</div>
-          </div>
-          <div class="grade-letter">{{ grade }}</div>
-        </div>
-        <div class="info-card">
-          <div class="label">Summary</div>
-          <div class="value" style="font-weight:400;line-height:1.6;font-size:.8rem">
-            {{ performance_summary }}
-          </div>
-        </div>
-      </div>
 
-    </div>
+                <!-- Brand + Report Meta -->
 
-    <!-- Attendance Overview -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Attendance Overview</div>
-      <div class="grid-2">
+                <div class="top-row">
 
-        <div>
-          <div class="att-block">
-            <div class="att-row">
-              <span class="att-name">Overall Attendance</span>
-              <span class="att-pct" style="color:{% if attendance_rate >= 80 %}#10b981{% elif attendance_rate >= 60 %}#f59e0b{% else %}#ef4444{% endif %}">
-                {{ attendance_rate }}%
-              </span>
+                    <div class="brand">
+
+                        <div class="brand-logo">
+
+                            <img
+                                src="{% static 'core/images/parach.jpg' %}"
+                                alt="Parach ICT Academy Logo"
+                            >
+
+                        </div>
+
+                        <div>
+
+                            <div class="brand-name">
+                                Parach ICT Academy
+                            </div>
+
+                            <div class="brand-tagline">
+                                Empowering the next generation of tech leaders
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="report-meta">
+
+                        <div class="report-type">
+                            Student Progress Report
+                        </div>
+
+                        <div class="report-date">
+                            Generated: {{ generated_date }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Student -->
+
+                <div class="student-hero">
+
+                    <div class="student-avatar">
+                        {{ student_initial }}
+                    </div>
+
+
+                    <div>
+
+                        <div class="student-name">
+                            {{ student_name }}
+                        </div>
+
+                        <div class="student-course">
+                            {{ course_name }}
+                        </div>
+
+
+                        <div class="student-meta">
+
+                            <span>
+                                📅 Enrolled
+                                <strong>{{ enrolled_date }}</strong>
+                            </span>
+
+                            <span>
+                                👤 Tutor
+                                <strong>{{ tutor_name }}</strong>
+                            </span>
+
+                            <span>
+                                📍
+                                <strong>{{ mode }}</strong>
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
-            <div class="bar-track">
-              <div class="bar-fill {% if attendance_rate < 60 %}danger{% elif attendance_rate < 80 %}warn{% endif %}"
-                   style="width:{{ attendance_rate }}%"></div>
+
+        </header>
+
+
+        <!-- =====================================================
+             PERFORMANCE SNAPSHOT
+        ====================================================== -->
+
+        <div class="stats-bar">
+
+            <div class="stat-item">
+
+                <div class="stat-num">
+                    {{ weeks_completed }}
+                </div>
+
+                <div class="stat-label">
+                    Weeks Completed
+                </div>
+
             </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px">
-            <div class="info-card" style="text-align:center">
-              <div class="label">Present</div>
-              <div class="value" style="font-size:1.3rem;color:#10b981">{{ present_count }}</div>
+
+
+            <div class="stat-item">
+
+                <div class="stat-num">
+                    {{ total_sessions }}
+                </div>
+
+                <div class="stat-label">
+                    Sessions Attended
+                </div>
+
             </div>
-            <div class="info-card" style="text-align:center">
-              <div class="label">Absent</div>
-              <div class="value" style="font-size:1.3rem;color:#ef4444">{{ absent_count }}</div>
+
+
+            <div class="stat-item">
+
+                <div class="stat-num">
+                    {{ topics_count }}
+                </div>
+
+                <div class="stat-label">
+                    Topics Covered
+                </div>
+
             </div>
-            <div class="info-card" style="text-align:center">
-              <div class="label">Total</div>
-              <div class="value" style="font-size:1.3rem">{{ total_sessions }}</div>
+
+
+            <div class="stat-item">
+
+                <div class="stat-num">
+                    {{ attendance_rate }}%
+                </div>
+
+                <div class="stat-label">
+                    Attendance Rate
+                </div>
+
             </div>
-          </div>
+
         </div>
 
-        <div>
-          <div class="section-title" style="font-size:.7rem;margin-bottom:10px">
-            <div class="dot"></div>Per-Classroom Breakdown
-          </div>
-          {% for stat in classroom_stats %}
-          <div class="att-block">
-            <div class="att-row">
-              <span class="att-name">{{ stat.classroom }}</span>
-              <span class="att-pct">{{ stat.rate }}%</span>
+
+        <!-- =====================================================
+             BODY
+        ====================================================== -->
+
+        <main class="body">
+
+
+            <!-- =================================================
+                 STUDENT OVERVIEW + ASSESSMENT
+            ================================================== -->
+
+            <div
+                class="grid-2"
+                style="margin-bottom:30px"
+            >
+
+
+                <!-- Student Overview -->
+
+                <section>
+
+                    <div class="section-title">
+
+                        <span class="section-dot"></span>
+
+                        Student Overview
+
+                    </div>
+
+
+                    <div class="overview-grid">
+
+                        <div class="info-card">
+
+                            <div class="label">
+                                Full Name
+                            </div>
+
+                            <div class="value">
+                                {{ student_name }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-card">
+
+                            <div class="label">
+                                Mode
+                            </div>
+
+                            <div class="value">
+                                {{ mode }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-card">
+
+                            <div class="label">
+                                Course
+                            </div>
+
+                            <div class="value">
+                                {{ course_name }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-card">
+
+                            <div class="label">
+                                Classroom
+                            </div>
+
+                            <div class="value">
+                                {{ classroom_name }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-card">
+
+                            <div class="label">
+                                Enrolled
+                            </div>
+
+                            <div class="value">
+                                {{ enrolled_date }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-card">
+
+                            <div class="label">
+                                Current Week
+                            </div>
+
+                            <div class="value">
+                                Week {{ current_week }}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- Overall Assessment -->
+
+                <section>
+
+                    <div class="section-title">
+
+                        <span class="section-dot"></span>
+
+                        Overall Assessment
+
+                    </div>
+
+
+                    <div class="assessment">
+
+                        <div>
+
+                            <div class="assessment-label">
+                                Overall Grade
+                            </div>
+
+                            <div class="assessment-description">
+                                {{ grade_label }}
+                            </div>
+
+                        </div>
+
+
+                        <div class="grade">
+                            {{ grade }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-card summary-card">
+
+                        <div class="label">
+                            Performance Summary
+                        </div>
+
+                        <div
+                            class="value"
+                            style="font-weight:400;font-size:12px;line-height:1.65"
+                        >
+                            {{ performance_summary }}
+                        </div>
+
+                    </div>
+
+                </section>
+
             </div>
-            <div class="bar-track">
-              <div class="bar-fill {% if stat.rate < 60 %}danger{% elif stat.rate < 80 %}warn{% endif %}"
-                   style="width:{{ stat.rate }}%"></div>
+
+
+            <!-- =================================================
+                 ATTENDANCE
+            ================================================== -->
+
+            <section class="section">
+
+                <div class="section-title">
+
+                    <span class="section-dot"></span>
+
+                    Attendance Overview
+
+                </div>
+
+
+                <div class="attendance-layout">
+
+
+                    <!-- Overall Attendance -->
+
+                    <div class="attendance-main">
+
+                        <div class="attendance-row">
+
+                            <span class="attendance-name">
+                                Overall Attendance
+                            </span>
+
+                            <span
+                                class="attendance-percent"
+                                style="
+                                    color:
+                                    {% if attendance_rate >= 80 %}
+                                        #059669
+                                    {% elif attendance_rate >= 60 %}
+                                        #d97706
+                                    {% else %}
+                                        #dc2626
+                                    {% endif %}
+                                "
+                            >
+                                {{ attendance_rate }}%
+                            </span>
+
+                        </div>
+
+
+                        <div class="bar-track">
+
+                            <div
+                                class="bar-fill
+                                {% if attendance_rate < 60 %}
+                                    danger
+                                {% elif attendance_rate < 80 %}
+                                    warn
+                                {% endif %}"
+                                style="width:{{ attendance_rate }}%"
+                            ></div>
+
+                        </div>
+
+
+                        <div class="attendance-mini">
+
+                            <div class="mini-stat">
+
+                                <div class="mini-stat-label">
+                                    Present
+                                </div>
+
+                                <div class="mini-stat-value present">
+                                    {{ present_count }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="mini-stat">
+
+                                <div class="mini-stat-label">
+                                    Absent
+                                </div>
+
+                                <div class="mini-stat-value absent">
+                                    {{ absent_count }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="mini-stat">
+
+                                <div class="mini-stat-label">
+                                    Total
+                                </div>
+
+                                <div class="mini-stat-value">
+                                    {{ total_sessions }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Classroom Breakdown -->
+
+                    <div class="classroom-breakdown">
+
+                        <div
+                            class="section-title"
+                            style="font-size:11px;margin-bottom:12px"
+                        >
+
+                            <span class="section-dot"></span>
+
+                            Per-Classroom Breakdown
+
+                        </div>
+
+
+                        {% for stat in classroom_stats %}
+
+                        <div class="classroom-stat">
+
+                            <div class="classroom-stat-head">
+
+                                <span class="classroom-name">
+                                    {{ stat.classroom }}
+                                </span>
+
+                                <span class="classroom-rate">
+                                    {{ stat.rate }}%
+                                </span>
+
+                            </div>
+
+
+                            <div class="bar-track">
+
+                                <div
+                                    class="bar-fill
+                                    {% if stat.rate < 60 %}
+                                        danger
+                                    {% elif stat.rate < 80 %}
+                                        warn
+                                    {% endif %}"
+                                    style="width:{{ stat.rate }}%"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+                        {% empty %}
+
+                        <p
+                            style="
+                                font-size:12px;
+                                color:var(--muted)
+                            "
+                        >
+                            No classroom data available.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 CURRICULUM
+            ================================================== -->
+
+            <section class="section">
+
+                <div class="section-title">
+
+                    <span class="section-dot"></span>
+
+                    Curriculum Coverage
+
+                </div>
+
+
+                {% if modules %}
+
+                <div class="module-list">
+
+                    {% for module in modules %}
+
+                    <div class="module-item">
+
+                        <div class="module-num">
+                            {{ forloop.counter|stringformat:"02d" }}
+                        </div>
+
+
+                        <div class="module-body">
+
+                            <div class="module-title">
+                                {{ module.title }}
+                            </div>
+
+                            <div class="module-sub">
+                                {{ module.subtitle }}
+                            </div>
+
+
+                            <div class="module-topics">
+
+                                {% for topic in module.topics %}
+
+                                <span class="tag-sm">
+                                    {{ topic }}
+                                </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+                {% else %}
+
+                <p
+                    style="
+                        font-size:12px;
+                        color:var(--muted)
+                    "
+                >
+                    No topics recorded for this student yet.
+                </p>
+
+                {% endif %}
+
+            </section>
+
+
+            <!-- =================================================
+                 SESSION LOG
+            ==================================================
+
+            <section class="section">
+
+                <div class="section-title">
+
+                    <span class="section-dot"></span>
+
+                    Session Log
+
+                </div>
+
+                {% if session_log %}
+
+                <table class="session-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Date</th>
+                            <th>Topic</th>
+                            <th>Classroom</th>
+                            <th>Status</th>
+                            <th>Note</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for row in session_log %}
+
+                        <tr>
+
+                            <td style="white-space:nowrap;font-weight:500">
+                                {{ row.date }}
+                            </td>
+
+                            <td>
+                                {{ row.topic }}
+                            </td>
+
+                            <td style="color:#64748b">
+                                {{ row.classroom }}
+                            </td>
+
+                            <td>
+                                <span class="badge badge-{{ row.status_class }}">
+                                    {{ row.status }}
+                                </span>
+                            </td>
+
+                            <td style="color:#64748b">
+                                {{ row.note }}
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                {% else %}
+
+                <p style="font-size:12px;color:var(--muted)">
+                    No sessions recorded yet.
+                </p>
+
+                {% endif %}
+
+            </section>
+
+            -->
+
+
+            <!-- =================================================
+                 TUTOR'S NOTES
+            ================================================== -->
+
+            {% if tutor_comment %}
+
+            <section class="section">
+
+                <div class="section-title">
+
+                    <span class="section-dot"></span>
+
+                    Tutor's Notes
+
+                </div>
+
+
+                <div class="comment-box">
+
+                    {{ tutor_comment }}
+
+                    <div class="comment-author">
+                        — {{ tutor_name }}
+                    </div>
+
+                </div>
+
+            </section>
+
+            {% endif %}
+
+
+            <!-- =================================================
+                 SKILLS & TOPICS
+            ==================================================
+
+            <section class="section">
+
+                <div class="section-title">
+
+                    <span class="section-dot"></span>
+
+                    Skills &amp; Topics Encountered
+
+                </div>
+
+
+                <div>
+
+                    {% for tag in topic_tags %}
+
+                    <span class="tag">
+                        {{ tag }}
+                    </span>
+
+                    {% empty %}
+
+                    <p style="font-size:12px;color:var(--muted)">
+                        No topics recorded yet.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+            -->
+
+        </main>
+
+
+        <!-- =====================================================
+             FOOTER
+        ====================================================== -->
+
+        <footer class="footer">
+
+            <div class="footer-left">
+
+                <strong>Parach ICT Academy</strong>
+                · Student Progress Report
+
+                <br>
+
+                {{ student_name }}
+                ·
+                {{ course_name }}
+                ·
+                Reporting Period:
+                {{ report_period }}
+
             </div>
-          </div>
-          {% empty %}
-          <p style="font-size:.78rem;color:var(--muted)">No classroom data available.</p>
-          {% endfor %}
-        </div>
 
-      </div>
-    </div>
 
-    <!-- Curriculum Coverage — grouped by module -->
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Curriculum Coverage</div>
-      {% if modules %}
-      <div class="module-list">
-        {% for module in modules %}
-        <div class="module-item">
-          <div class="module-num">{{ forloop.counter|stringformat:"02d" }}</div>
-          <div class="module-body">
-            <div class="module-title">{{ module.title }}</div>
-            <div class="module-sub">{{ module.subtitle }}</div>
-            <div class="module-topics">
-              {% for topic in module.topics %}
-              <span class="tag-sm">{{ topic }}</span>
-              {% endfor %}
+            <div class="footer-right">
+
+                <div class="confidential">
+                    CONFIDENTIAL
+                </div>
+
+                Generated {{ generated_date }}
+
             </div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <p style="font-size:.82rem;color:var(--muted)">No topics recorded for this student yet.</p>
-      {% endif %}
+
+        </footer>
+
+
     </div>
 
-    <!-- Session Log
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Session Log</div>
-      {% if session_log %}
-      <table class="session-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Topic</th>
-            <th>Classroom</th>
-            <th>Status</th>
-            <th>Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in session_log %}
-          <tr>
-            <td style="white-space:nowrap;font-weight:500">{{ row.date }}</td>
-            <td>{{ row.topic }}</td>
-            <td style="color:#64748b">{{ row.classroom }}</td>
-            <td><span class="badge badge-{{ row.status_class }}">{{ row.status }}</span></td>
-            <td style="color:#64748b">{{ row.note }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p style="font-size:.82rem;color:var(--muted)">No sessions recorded yet.</p>
-      {% endif %}
-    </div> -->
-
-    <!-- Tutor's Notes -->
-    {% if tutor_comment %}
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Tutor's Notes</div>
-      <div class="comment-box">
-        {{ tutor_comment }}
-        <div class="comment-author">— {{ tutor_name }}</div>
-      </div>
-    </div>
-    {% endif %}
-
-    <!-- Skills & Topics Encountered
-    <div class="section">
-      <div class="section-title"><div class="dot"></div>Skills &amp; Topics Encountered</div>
-      <div>
-        {% for tag in topic_tags %}
-        <span class="tag">{{ tag }}</span>
-        {% empty %}
-        <p style="font-size:.82rem;color:var(--muted)">No topics recorded yet.</p>
-        {% endfor %}
-      </div>
-    </div> -->
-
-  </div>
-
-  <!-- ── FOOTER ── -->
-  <div class="footer">
-    <div class="left">
-      <strong>Parach ICT Academy</strong> · Student Progress Report<br>
-      {{ student_name }} · {{ course_name }} · Reporting Period: {{ report_period }}
-    </div>
-    <div class="right">
-      <div class="page-num">CONFIDENTIAL</div>
-      Generated {{ generated_date }}
-    </div>
-  </div>
-
-</div>
 </body>
+
 </html>

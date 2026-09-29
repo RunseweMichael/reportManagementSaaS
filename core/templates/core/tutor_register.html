@@ -20,6 +20,70 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,231,183,.1)
 .btn{display:block;width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),#34d399);color:#000;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;border:none;border-radius:8px;cursor:pointer;transition:.15s;margin-top:8px}
 .btn:hover{opacity:.9}
 .error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:10px 14px;color:var(--warn);font-size:.85rem;margin-bottom:16px}
+.card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:32px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.form-group{
+    margin-bottom:16px;
+}
+
+.form-label{
+    display:block;
+    font-size:.78rem;
+    color:var(--muted);
+    font-family:'Syne',sans-serif;
+    font-weight:600;
+    
+    letter-spacing:.06em;
+    margin-bottom:6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea{
+    width:100%;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:11px 14px;
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-size:.9rem;
+    outline:none;
+    transition:.15s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(110,231,183,.1);
+}
+
+.form-group textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+.form-group select{
+    cursor:pointer;
+}
+
+.logo{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+
+@media (max-width:600px){
+    .card{
+        padding:24px 20px;
+    }
+
+    .card form > div[style*="grid-template-columns"]{
+        grid-template-columns:1fr !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -27,7 +91,7 @@ input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,231,183,.1)
   <div style="width:100%;max-width:520px">
 
     <div style="text-align:center;margin-bottom:32px">
-      <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800">Parach ICT Academy</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800" class="logo">Parach ICT Academy</div>
       <div style="color:var(--muted);margin-top:6px">Create your tutor account</div>
     </div>
 

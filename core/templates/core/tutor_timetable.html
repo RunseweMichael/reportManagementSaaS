@@ -13,7 +13,7 @@
       <thead>
         <tr>
           {% for day_num, day_name in days.items %}
-          <th style="background:var(--surface2);padding:12px 10px;font-family:'Syne',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border)">{{ day_name }}</th>
+          <th style="background:var(--surface2);padding:12px 10px;font-family:'Syne',sans-serif;font-size:.72rem;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border)">{{ day_name }}</th>
           {% endfor %}
         </tr>
       </thead>
@@ -34,9 +34,9 @@
     📍 {{ entry.get_location_display }}
   </div>
   {% endif %}
-  <div style="font-size:.72rem;color:var(--muted);margin-top:3px">
+  <!-- <div style="font-size:.72rem;color:var(--muted);margin-top:3px">
     {{ entry.students.count }} students
-  </div>
+  </div> -->
   <div style="display:flex;gap:4px;margin-top:6px">
     <a href="{% url 'tutor_timetable_edit' entry.pk %}" class="btn btn-secondary btn-sm" style="padding:2px 8px;font-size:.68rem">Edit</a>
     <a href="{% url 'tutor_timetable_delete' entry.pk %}" class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:.68rem">Del</a>

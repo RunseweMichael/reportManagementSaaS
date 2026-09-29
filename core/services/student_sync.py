@@ -46,6 +46,15 @@ def sync_students():
 
             defaults['last_synced_at'] = timezone.now()
 
+            # A student marked completed locally must stay that way: the
+            # source system still reports them as an active enrollee, so
+            # letting 'active' through here would silently flip them back
+            # every time someone hits "Sync Students". Every other field
+            # (payment info, phone, etc.) still refreshes normally.
+            existing = Student.objects.filter(external_id=row['id']).first()
+            if existing and existing.completed:
+                defaults.pop('active', None)
+
             # NOTE: 'tutor' is deliberately excluded from defaults, so a
             # resync never overwrites an admin's assignment.
             obj, was_created = Student.objects.update_or_create(

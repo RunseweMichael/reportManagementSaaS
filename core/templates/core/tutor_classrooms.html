@@ -1,59 +1,571 @@
 {% extends "core/tutor_base.html" %}
 {% block title %}Classrooms – Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Classrooms{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <h1 class="page-title">My Classrooms</h1>
-    <p class="page-sub">Each classroom is a cohort of students taking a course together</p>
+
+<style>
+  .classrooms-page {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+
+  .classrooms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .classrooms-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .classrooms-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(129, 140, 248, .1);
+    border: 1px solid rgba(129, 140, 248, .2);
+    color: var(--accent2);
+    font-size: 1.2rem;
+  }
+
+  .classrooms-title {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+  }
+
+  .classrooms-subtitle {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: .8rem;
+    line-height: 1.5;
+  }
+
+  /* ── Filters ────────────────────────────────────────── */
+
+  .classrooms-filter {
+    margin-bottom: 20px;
+  }
+
+  /* ── Grid ───────────────────────────────────────────── */
+
+  .classrooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Classroom Card ────────────────────────────────── */
+
+  .classroom-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition:
+      transform .2s ease,
+      border-color .2s ease,
+      box-shadow .2s ease;
+  }
+
+  .classroom-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+  }
+
+  .classroom-card.active {
+    border-color: rgba(110, 231, 183, .3);
+  }
+
+  .classroom-card.paused {
+    border-color: rgba(251, 146, 60, .3);
+  }
+
+  .classroom-card.completed {
+    border-color: rgba(100, 116, 139, .25);
+  }
+
+  .classroom-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .classroom-code {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: monospace;
+    font-size: .63rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+  }
+
+  .classroom-name {
+    margin-bottom: 4px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.02rem;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .classroom-course {
+    margin-bottom: 15px;
+    color: var(--muted);
+    font-size: .75rem;
+  }
+
+  /* ── Meta ───────────────────────────────────────────── */
+
+  .classroom-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin-bottom: 16px;
+  }
+
+  .classroom-meta-item {
+    min-width: 0;
+    padding: 9px 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface2);
+  }
+
+  .classroom-meta-icon {
+    margin-bottom: 4px;
+    color: var(--accent2);
+    font-size: .68rem;
+  }
+
+  .classroom-meta-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+    font-size: .7rem;
+    font-weight: 700;
+  }
+
+  .classroom-meta-label {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: .59rem;
+  }
+
+  /* ── Progress ───────────────────────────────────────── */
+
+  .classroom-progress {
+    margin-bottom: 15px;
+  }
+
+  .classroom-progress-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .classroom-progress-label {
+    color: var(--muted);
+    font-size: .68rem;
+  }
+
+  .classroom-progress-value {
+    color: var(--accent);
+    font-size: .68rem;
+    font-weight: 800;
+  }
+
+  .classroom-progress-bar {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--surface2);
+  }
+
+  .classroom-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+  }
+
+  /* ── Dates ──────────────────────────────────────────── */
+
+  .classroom-dates {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: auto;
+    margin-bottom: 15px;
+    padding-top: 13px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .68rem;
+    line-height: 1.5;
+  }
+
+  .classroom-date-icon {
+    color: var(--accent2);
+    font-size: .7rem;
+  }
+
+  /* ── Action ─────────────────────────────────────────── */
+
+  .classroom-open {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Empty State ────────────────────────────────────── */
+
+  .classrooms-empty {
+    padding: 58px 24px;
+    text-align: center;
+  }
+
+  .classrooms-empty-icon {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    border-radius: 15px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-size: 1.35rem;
+  }
+
+  .classrooms-empty-title {
+    margin-bottom: 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+  }
+
+  .classrooms-empty-text {
+    max-width: 390px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: .75rem;
+    line-height: 1.55;
+  }
+
+  /* ── Responsive ─────────────────────────────────────── */
+
+  @media (max-width: 600px) {
+    .classrooms-heading {
+      gap: 10px;
+    }
+
+    .classrooms-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+
+    .classrooms-title {
+      font-size: 1.25rem;
+    }
+
+    .classrooms-subtitle {
+      font-size: .72rem;
+    }
+
+    .classrooms-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .classroom-meta {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .classroom-card {
+      transition: none;
+    }
+
+    .classroom-card:hover {
+      transform: none;
+    }
+  }
+</style>
+
+
+<div class="classrooms-page">
+
+  <!-- ── Page Header ──────────────────────────────────── -->
+
+  <div class="classrooms-header">
+
+    <div class="classrooms-heading">
+
+      <div class="classrooms-icon">
+        ◈
+      </div>
+
+      <div>
+        <h1 class="classrooms-title">
+          My Classrooms
+        </h1>
+
+        <p class="classrooms-subtitle">
+          Each classroom is a cohort of students taking a course together
+        </p>
+      </div>
+
+    </div>
+
   </div>
+
+
+  <!-- ── Filters ──────────────────────────────────────── -->
+
+  <div class="filter-bar classrooms-filter">
+
+    <a
+      href="{% url 'tutor_classrooms' %}"
+      class="{% if not status_filter %}active{% endif %}"
+    >
+      All
+    </a>
+
+    <a
+      href="?status=active"
+      class="{% if status_filter == 'active' %}active{% endif %}"
+    >
+      Active
+    </a>
+
+    <a
+      href="?status=paused"
+      class="{% if status_filter == 'paused' %}active{% endif %}"
+    >
+      Paused
+    </a>
+
+    <a
+      href="?status=completed"
+      class="{% if status_filter == 'completed' %}active{% endif %}"
+    >
+      Completed
+    </a>
+
+  </div>
+
+
+  {% if classrooms %}
+
+    <!-- ── Classroom Grid ─────────────────────────────── -->
+
+    <div class="classrooms-grid">
+
+      {% for cr in classrooms %}
+
+        <div
+          class="card classroom-card
+          {% if cr.status == 'active' %}
+            active
+          {% elif cr.status == 'paused' %}
+            paused
+          {% else %}
+            completed
+          {% endif %}"
+        >
+
+          <!-- Status + Join Code -->
+          <div class="classroom-card-top">
+
+            <span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">
+              {{ cr.get_status_display }}
+            </span>
+
+            
+
+          </div>
+
+
+          <!-- Classroom Name -->
+          <div class="classroom-name">
+            {{ cr.name }}
+          </div>
+
+          <div class="classroom-course">
+            {{ cr.course.name }}
+          </div>
+
+
+          <!-- Classroom Statistics -->
+          <div class="classroom-meta">
+
+            <div class="classroom-meta-item">
+
+              <div class="classroom-meta-icon">
+                👥
+              </div>
+
+              <div class="classroom-meta-value">
+                {{ cr.student_count }}
+              </div>
+
+              <div class="classroom-meta-label">
+                Student{{ cr.student_count|pluralize }}
+              </div>
+
+            </div>
+
+
+            <div class="classroom-meta-item">
+
+              <div class="classroom-meta-icon">
+                ▣
+              </div>
+
+              <div class="classroom-meta-value">
+                {{ cr.session_count }}
+              </div>
+
+              <div class="classroom-meta-label">
+                Session{{ cr.session_count|pluralize }}
+              </div>
+
+            </div>
+
+
+            <div class="classroom-meta-item">
+
+              <div class="classroom-meta-icon">
+                ◒
+              </div>
+
+              <div class="classroom-meta-value">
+                Week {{ cr.current_week }}
+              </div>
+
+              <div class="classroom-meta-label">
+                Current week
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- Course Progress -->
+          {% if cr.end_date %}
+
+            <div class="classroom-progress">
+
+              <div class="classroom-progress-header">
+
+                <span class="classroom-progress-label">
+                  Course Progress
+                </span>
+
+                <span class="classroom-progress-value">
+                  {{ cr.progress_percent }}%
+                </span>
+
+              </div>
+
+              <div class="classroom-progress-bar">
+
+                <div
+                  class="classroom-progress-fill"
+                  style="width:{{ cr.progress_percent }}%"
+                ></div>
+
+              </div>
+
+            </div>
+
+          {% endif %}
+
+
+          <!-- Dates -->
+          <div class="classroom-dates">
+
+            <span class="classroom-date-icon">
+              ◷
+            </span>
+
+            <span>
+              Started {{ cr.start_date|date:"M d, Y" }}
+
+              {% if cr.end_date %}
+                · Ends {{ cr.end_date|date:"M d, Y" }}
+              {% endif %}
+            </span>
+
+          </div>
+
+
+          <!-- Action -->
+          <a
+            href="{% url 'tutor_classroom_detail' cr.pk %}"
+            class="btn btn-primary btn-sm classroom-open"
+          >
+            Open Classroom →
+          </a>
+
+        </div>
+
+      {% endfor %}
+
+    </div>
+
+
+  {% else %}
+
+    <!-- ── Empty State ────────────────────────────────── -->
+
+    <div class="card classrooms-empty">
+
+      <div class="classrooms-empty-icon">
+        ◈
+      </div>
+
+      <div class="classrooms-empty-title">
+        No Classrooms Yet
+      </div>
+
+      <p class="classrooms-empty-text">
+        No classrooms have been assigned to you yet.
+        The management will create classrooms for you soon.
+      </p>
+
+    </div>
+
+  {% endif %}
+
 </div>
 
-<div class="filter-bar">
-  <a href="{% url 'tutor_classrooms' %}"    class="{% if not status_filter %}active{% endif %}">All</a>
-  <a href="?status=active"    class="{% if status_filter == 'active' %}active{% endif %}">Active</a>
-  <a href="?status=paused"    class="{% if status_filter == 'paused' %}active{% endif %}">Paused</a>
-  <a href="?status=completed" class="{% if status_filter == 'completed' %}active{% endif %}">Completed</a>
-</div>
-
-{% if classrooms %}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
-  {% for cr in classrooms %}
-  <div class="card" style="border-color:{% if cr.status == 'active' %}rgba(110,231,183,.3){% elif cr.status == 'paused' %}rgba(251,146,60,.3){% else %}rgba(100,116,139,.25){% endif %}">
-    <div class="flex justify-between items-center" style="margin-bottom:12px">
-      <span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">
-        {{ cr.get_status_display }}
-      </span>
-      <span class="tag" style="letter-spacing:.1em">{{ cr.join_code }}</span>
-    </div>
-    <div style="font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:3px">{{ cr.name }}</div>
-    <div class="text-muted text-sm" style="margin-bottom:12px">{{ cr.course.name }}</div>
-    <div class="flex gap-3 text-sm text-muted" style="margin-bottom:12px;flex-wrap:wrap">
-      <span>👥 {{ cr.student_count }} student{{ cr.student_count|pluralize }}</span>
-      <span>📋 {{ cr.session_count }} session{{ cr.session_count|pluralize }}</span>
-      <span>📍 Week {{ cr.current_week }}</span>
-    </div>
-    {% if cr.end_date %}
-    <div style="margin-bottom:12px">
-      <div class="flex justify-between text-sm text-muted" style="margin-bottom:4px">
-        <span>Progress</span><span>{{ cr.progress_percent }}%</span>
-      </div>
-      <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ cr.progress_percent }}%"></div></div>
-    </div>
-    {% endif %}
-    <div class="text-muted text-sm" style="margin-bottom:14px">
-      Started {{ cr.start_date|date:"M d, Y" }}{% if cr.end_date %} · Ends {{ cr.end_date|date:"M d, Y" }}{% endif %}
-    </div>
-    <div class="flex gap-2">
-      <a href="{% url 'tutor_classroom_detail' cr.pk %}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">Open</a>
-      </div>
-  </div>
-  {% endfor %}
-</div>
-{% else %}
-<div class="empty-state card">
-  <div class="icon">◈</div>
-  <p>No classrooms yet. Create one to start grouping students into cohorts.</p>
-</div>
-{% endif %}
 {% endblock %}

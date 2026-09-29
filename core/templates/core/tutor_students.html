@@ -1,68 +1,764 @@
 {% extends "core/tutor_base.html" %}
 {% block title %}My Students – Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Students{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <h1 class="page-title">My Students</h1>
-    <p class="page-sub">{{ students.count }} student{{ students.count|pluralize }} assigned to you</p>
+
+<style>
+  .students-page {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* =========================
+     PAGE HEADER
+  ========================= */
+
+  .students-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .students-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .students-heading-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    color: var(--accent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      color-mix(in srgb, var(--accent2) 14%, transparent)
+    );
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  }
+
+  .students-title {
+    margin: 0;
+    font-size: clamp(1.5rem, 2vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .students-subtitle {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+
+  .student-count-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: .78rem;
+    font-weight: 700;
+  }
+
+  .student-count-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--online);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--online) 12%, transparent);
+  }
+
+  /* =========================
+     DIRECTORY CARD
+  ========================= */
+
+  .students-directory {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .directory-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--border);
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--accent) 4%, transparent),
+        transparent 45%
+      ),
+      var(--surface);
+  }
+
+  .directory-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: .95rem;
+    font-weight: 750;
+  }
+
+  .directory-title-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    color: var(--accent2);
+    font-size: .85rem;
+  }
+
+  .directory-hint {
+    color: var(--muted);
+    font-size: .78rem;
+  }
+
+  /* =========================
+     TABLE SCROLL CONTAINER
+  ========================= */
+
+  .students-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .students-table-scroll table {
+    width: 100%;
+    min-width: 1050px;
+    border-collapse: collapse;
+  }
+
+  .students-table-scroll thead th {
+    padding: 13px 16px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .students-table-scroll tbody td {
+    padding: 15px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .students-table-scroll tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .students-table-scroll tbody tr {
+    transition:
+      background .18s ease,
+      transform .18s ease;
+  }
+
+  .students-table-scroll tbody tr:hover {
+    background: color-mix(in srgb, var(--accent) 3%, transparent);
+  }
+
+  /* =========================
+     STUDENT IDENTITY
+  ========================= */
+
+  .student-identity {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 190px;
+  }
+
+  .student-avatar {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: .82rem;
+    font-weight: 800;
+    background: linear-gradient(
+      135deg,
+      var(--accent2),
+      #6366f1
+    );
+    box-shadow: 0 5px 14px rgba(99, 102, 241, .18);
+  }
+
+  .student-name {
+    font-weight: 750;
+    color: var(--text);
+    line-height: 1.25;
+  }
+
+  .student-email {
+    max-width: 180px;
+    margin-top: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: .72rem;
+  }
+
+  /* =========================
+     CLASSROOM / COURSE TAGS
+  ========================= */
+
+  .student-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 130px;
+    max-width: 220px;
+  }
+
+  .student-tag {
+    display: inline-flex;
+    align-items: center;
+    max-width: 190px;
+    padding: 5px 8px;
+    border-radius: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: .69rem;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: all .18s ease;
+  }
+
+  a.student-tag:hover {
+    color: var(--accent2);
+    border-color: color-mix(in srgb, var(--accent2) 40%, var(--border));
+    transform: translateY(-1px);
+  }
+
+  .classroom-tag {
+    color: var(--accent2);
+  }
+
+  /* =========================
+     WEEK
+  ========================= */
+
+  .week-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 9px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--accent2) 9%, var(--surface2));
+    border: 1px solid color-mix(in srgb, var(--accent2) 16%, var(--border));
+    color: var(--text);
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* =========================
+     ATTENDANCE
+  ========================= */
+
+  .attendance-cell {
+    min-width: 130px;
+  }
+
+  .attendance-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .attendance-label {
+    color: var(--muted);
+    font-size: .68rem;
+  }
+
+  .attendance-value {
+    color: var(--text);
+    font-size: .76rem;
+    font-weight: 800;
+  }
+
+  .attendance-track {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--surface2);
+  }
+
+  .attendance-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      var(--accent),
+      var(--accent2)
+    );
+  }
+
+  /* =========================
+     STATUS
+  ========================= */
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-active {
+    color: var(--online);
+    background: color-mix(in srgb, var(--online) 9%, var(--surface2));
+    border: 1px solid color-mix(in srgb, var(--online) 18%, var(--border));
+  }
+
+  .status-active .status-dot {
+    background: var(--online);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--online) 12%, transparent);
+  }
+
+  .status-inactive {
+    color: var(--muted);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .status-inactive .status-dot {
+    background: var(--muted);
+  }
+
+  /* =========================
+     ACTIONS
+  ========================= */
+
+  .student-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .student-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 31px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: .7rem;
+    font-weight: 750;
+    text-decoration: none;
+    transition: all .18s ease;
+  }
+
+  .student-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .student-action-view {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 9%, var(--surface2));
+    border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  }
+
+  .student-action-edit {
+    color: var(--text);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  /* =========================
+     EMPTY STATE
+  ========================= */
+
+  .students-empty {
+    margin-top: 20px;
+    padding: 55px 25px;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .students-empty-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    color: var(--accent2);
+    background: color-mix(in srgb, var(--accent2) 9%, var(--surface2));
+    border: 1px solid color-mix(in srgb, var(--accent2) 16%, var(--border));
+    font-size: 1.3rem;
+  }
+
+  .students-empty h3 {
+    margin: 0 0 7px;
+    font-size: 1rem;
+  }
+
+  .students-empty p {
+    max-width: 440px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: .82rem;
+    line-height: 1.6;
+  }
+
+  /* =========================
+     RESPONSIVE
+  ========================= */
+
+  @media (max-width: 700px) {
+    .students-header {
+      align-items: flex-start;
+    }
+
+    .students-heading-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+    }
+
+    .directory-top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .directory-hint {
+      display: none;
+    }
+
+    .student-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .student-action {
+      width: 58px;
+    }
+  }
+</style>
+
+<div class="students-page">
+
+  <!-- =========================
+       PAGE HEADER
+  ========================== -->
+  <div class="students-header">
+    <div class="students-heading">
+
+      <div class="students-heading-icon">
+        ◉
+      </div>
+
+      <div>
+        <h1 class="students-title">My Students</h1>
+        <p class="students-subtitle">
+          {{ students.count }} student{{ students.count|pluralize }} assigned to you
+        </p>
+      </div>
+
+    </div>
+
+    <div class="student-count-pill">
+      <span class="student-count-dot"></span>
+      {{ students.count }} Student{{ students.count|pluralize }}
+    </div>
   </div>
+
+
+  {% if students %}
+
+  <!-- =========================
+       STUDENT DIRECTORY
+  ========================== -->
+  <div class="students-directory">
+
+    <div class="directory-top">
+
+      <div class="directory-title">
+        <div class="directory-title-icon">
+          👥
+        </div>
+        Student Directory
+      </div>
+
+      <div class="directory-hint">
+        View student information, attendance and classroom details
+      </div>
+
+    </div>
+
+
+    <!--
+      Horizontal scrolling is intentionally contained
+      inside this element rather than affecting the whole page.
+    -->
+    <div class="students-table-scroll">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Mode</th>
+            <th>Classrooms</th>
+            <th>Courses</th>
+            <th>Week</th>
+            <th>Attendance</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        {% for s in students %}
+
+        <tr>
+
+          <!-- STUDENT -->
+          <td>
+            <div class="student-identity">
+
+              <div class="student-avatar">
+                {{ s.name|slice:":1"|upper }}
+              </div>
+
+              <div>
+                <div class="student-name">
+                  {{ s.name }}
+                </div>
+
+                {% if s.email %}
+                  <div class="student-email">
+                    {{ s.email }}
+                  </div>
+                {% endif %}
+              </div>
+
+            </div>
+          </td>
+
+
+          <!-- MODE -->
+          <td>
+            <span class="badge badge-{{ s.mode }}">
+              {{ s.get_mode_display }}
+            </span>
+          </td>
+
+
+          <!-- CLASSROOMS -->
+          <td>
+
+            <div class="student-tags">
+
+              {% for cr in s.classrooms.all %}
+
+                <a
+                  href="{% url 'tutor_classroom_detail' cr.pk %}"
+                  class="student-tag classroom-tag"
+                >
+                  {{ cr.name|truncatechars:20 }}
+                </a>
+
+              {% empty %}
+
+                <span class="text-muted text-sm">
+                  None
+                </span>
+
+              {% endfor %}
+
+            </div>
+
+          </td>
+
+
+          <!-- COURSES -->
+          <td>
+
+            <div class="student-tags">
+
+              {% for c in s.courses.all %}
+
+                <span class="student-tag">
+                  {{ c.name }}
+                </span>
+
+              {% empty %}
+
+                <span class="text-muted text-sm">
+                  —
+                </span>
+
+              {% endfor %}
+
+            </div>
+
+          </td>
+
+
+          <!-- CURRENT WEEK -->
+          <td>
+            <span class="week-pill">
+              Week {{ s.current_week }}
+            </span>
+          </td>
+
+
+          <!-- ATTENDANCE -->
+          <td class="attendance-cell">
+
+            <div class="attendance-top">
+
+              <span class="attendance-label">
+                Attendance
+              </span>
+
+              <span class="attendance-value">
+                {{ s.attendance_rate }}%
+              </span>
+
+            </div>
+
+            <div class="attendance-track">
+              <div
+                class="attendance-fill"
+                style="width:{{ s.attendance_rate }}%"
+              ></div>
+            </div>
+
+          </td>
+
+
+          <!-- STATUS -->
+          <td>
+
+            {% if s.active %}
+
+              <span class="status-pill status-active">
+                <span class="status-dot"></span>
+                Active
+              </span>
+
+            {% else %}
+
+              <span class="status-pill status-inactive">
+                <span class="status-dot"></span>
+                Inactive
+              </span>
+
+            {% endif %}
+
+          </td>
+
+
+          <!-- ACTIONS -->
+          <td>
+
+            <div class="student-actions">
+
+              <a
+                href="{% url 'tutor_student_detail' s.pk %}"
+                class="student-action student-action-view"
+              >
+                View
+              </a>
+
+              <a
+                href="{% url 'tutor_student_edit' s.pk %}"
+                class="student-action student-action-edit"
+              >
+                Edit
+              </a>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  {% else %}
+
+  <!-- =========================
+       EMPTY STATE
+  ========================== -->
+  <div class="students-empty">
+
+    <div class="students-empty-icon">
+      ◉
+    </div>
+
+    <h3>No Students Assigned</h3>
+
+    <p>
+      No students have been assigned to you yet.
+      The management team will assign students to you soon.
+    </p>
+
+  </div>
+
+  {% endif %}
+
 </div>
 
-{% if students %}
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr><th>Student</th><th>Mode</th><th>Classrooms</th><th>Courses</th><th>Week</th><th>Attendance</th><th>Status</th><th></th></tr>
-    </thead>
-    <tbody>
-    {% for s in students %}
-    <tr>
-      <td>
-        <div class="flex items-center gap-2">
-          <div class="user-avatar" style="width:30px;height:30px;font-size:.78rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
-            {{ s.name|slice:":1"|upper }}
-          </div>
-          <div>
-            <div style="font-weight:600">{{ s.name }}</div>
-            {% if s.email %}<div class="text-muted text-sm">{{ s.email }}</div>{% endif %}
-          </div>
-        </div>
-      </td>
-      <td><span class="badge badge-{{ s.mode }}">{{ s.get_mode_display }}</span></td>
-      <td>
-        {% for cr in s.classrooms.all %}
-        <a href="{% url 'tutor_classroom_detail' cr.pk %}" class="tag" style="display:inline-block;margin-bottom:2px;color:var(--accent2)">
-          {{ cr.name|truncatechars:20 }}
-        </a>
-        {% empty %}<span class="text-muted text-sm">None</span>
-        {% endfor %}
-      </td>
-      <td>{% for c in s.courses.all %}<span class="tag">{{ c.name }}</span> {% empty %}—{% endfor %}</td>
-      <td>Week {{ s.current_week }}</td>
-      <td>
-        <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ s.attendance_rate }}%"></div></div>
-        <div class="text-muted text-sm" style="margin-top:3px">{{ s.attendance_rate }}%</div>
-      </td>
-      <td>
-        <span class="badge {% if s.active %}badge-active{% else %}badge-inactive{% endif %}">
-          {% if s.active %}Active{% else %}Inactive{% endif %}
-        </span>
-      </td>
-      <td class="flex gap-2">
-        <a href="{% url 'tutor_student_detail' s.pk %}" class="btn btn-primary btn-sm">View</a>
-        <a href="{% url 'tutor_student_edit' s.pk %}"    class="btn btn-secondary btn-sm">Edit</a>
-      </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% else %}
-<div class="empty-state card">
-  <div class="icon">◉</div>
-  <p>No students yet. Add your first student to get started.</p>
-  <a href="{% url 'tutor_student_add' %}" class="btn btn-primary" style="margin-top:16px">+ Add First Student</a>
-</div>
-{% endif %}
 {% endblock %}

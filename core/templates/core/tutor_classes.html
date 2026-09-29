@@ -1,42 +1,656 @@
 {% extends "core/tutor_base.html" %}
 {% block title %}My Classes – Parach ICT Academy{% endblock %}
 {% block breadcrumb %}My Classes{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div><h1 class="page-title">My Classes</h1><p class="page-sub">All sessions you've taught or scheduled</p></div>
-</div>
-{% if classes %}
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Date</th><th>Course</th><th>Topic</th><th>Students</th><th>Attendance</th><th>Actions</th></tr></thead>
-    <tbody>
-    {% for cls in classes %}
-    {% with s=cls.attendance_summary %}
-    <tr>
-      <td><div style="font-weight:600">{{ cls.date|date:"M d, Y" }}</div><div class="text-muted text-sm">{% if cls.start_time %}{{ cls.start_time|time:"H:i" }}{% if cls.end_time %} – {{ cls.end_time|time:"H:i" }}{% endif %}{% else %}—{% endif %}</div></td>
-      <td>{{ cls.course.name }}</td>
-      <td>{% if cls.topic %}<span>{{ cls.topic.title }}</span><div class="text-muted text-sm">Wk {{ cls.topic.week }} D{{ cls.topic.day }}</div>{% else %}<span class="text-muted">—</span>{% endif %}</td>
-      <td>{{ cls.students.count }}</td>
-      <td>
-        {% if s.total > 0 %}
-        <div style="font-size:.82rem;margin-bottom:4px">{{ s.present }}/{{ s.total }} present</div>
-        <div class="progress-bar"><div class="progress-bar-fill" style="width:{% widthratio s.present s.total 100 %}%"></div></div>
-        {% else %}<span class="text-muted text-sm">Not taken</span>{% endif %}
-      </td>
-      <td>
-        <div class="flex gap-2">
-          <a href="{% url 'tutor_class_detail' cls.pk %}" class="btn btn-secondary btn-sm">View</a>
-          <a href="{% url 'take_attendance' cls.pk %}" class="btn btn-primary btn-sm">Attendance</a>
-          <a href="{% url 'tutor_class_delete' cls.pk %}"  class="btn btn-danger btn-sm">Del</a>
+
+<style>
+  .classes-page {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+
+  .classes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .classes-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .classes-icon {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(129, 140, 248, .10);
+    border: 1px solid rgba(129, 140, 248, .20);
+    color: var(--accent2);
+    font-size: 1.2rem;
+  }
+
+  .classes-title {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+
+  .classes-subtitle {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: .82rem;
+  }
+
+  /* ── Directory Card ─────────────────────────────────── */
+
+  .classes-card {
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .classes-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .classes-card-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+  }
+
+  .classes-card-title-icon {
+    color: var(--accent2);
+    font-size: .9rem;
+  }
+
+  .class-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 25px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: .68rem;
+    font-weight: 700;
+  }
+
+  .classes-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .classes-scroll::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .classes-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .classes-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+  }
+
+  .classes-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+  }
+
+  .classes-table th {
+    padding: 11px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .67rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  .classes-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .classes-table tbody tr {
+    transition: background .18s ease;
+  }
+
+  .classes-table tbody tr:hover {
+    background: rgba(255,255,255,.018);
+  }
+
+  .classes-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* ── Date ───────────────────────────────────────────── */
+
+  .class-date {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 125px;
+  }
+
+  .date-box {
+    width: 40px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .date-month {
+    color: var(--accent);
+    font-size: .58rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .date-day {
+    margin-top: 3px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .date-info {
+    min-width: 0;
+  }
+
+  .date-year {
+    font-size: .76rem;
+    font-weight: 600;
+  }
+
+  .class-time {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: .68rem;
+    white-space: nowrap;
+  }
+
+  /* ── Course ─────────────────────────────────────────── */
+
+  .course-name {
+    font-weight: 700;
+    font-size: .82rem;
+    line-height: 1.35;
+  }
+
+  .course-label {
+    display: inline-flex;
+    margin-top: 5px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: rgba(129, 140, 248, .08);
+    color: var(--accent2);
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  /* ── Topic ──────────────────────────────────────────── */
+
+  .topic-name {
+    max-width: 190px;
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .topic-meta {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+  }
+
+  .topic-tag {
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: .6rem;
+    font-weight: 600;
+  }
+
+  /* ── Students ───────────────────────────────────────── */
+
+  .student-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 9px;
+    border-radius: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: .74rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .student-count-icon {
+    color: var(--accent2);
+    font-size: .7rem;
+  }
+
+  /* ── Attendance ─────────────────────────────────────── */
+
+  .attendance-cell {
+    min-width: 145px;
+  }
+
+  .attendance-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .attendance-number {
+    font-size: .73rem;
+    font-weight: 700;
+  }
+
+  .attendance-percent {
+    color: var(--accent);
+    font-size: .68rem;
+    font-weight: 700;
+  }
+
+  .attendance-bar {
+    height: 5px;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--surface2);
+  }
+
+  .attendance-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width .3s ease;
+  }
+
+  .not-taken {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: .7rem;
+  }
+
+  .not-taken-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  /* ── Actions ────────────────────────────────────────── */
+
+  .class-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .class-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* ── Empty State ────────────────────────────────────── */
+
+  .classes-empty {
+    padding: 55px 24px;
+    text-align: center;
+  }
+
+  .classes-empty-icon {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    border-radius: 15px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-size: 1.35rem;
+  }
+
+  .classes-empty-title {
+    margin-bottom: 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+  }
+
+  .classes-empty-text {
+    max-width: 360px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: .76rem;
+    line-height: 1.5;
+  }
+
+  /* ── Responsive ─────────────────────────────────────── */
+
+  @media (max-width: 700px) {
+    .classes-header {
+      align-items: flex-start;
+    }
+
+    .classes-title {
+      font-size: 1.25rem;
+    }
+
+    .classes-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 1rem;
+    }
+
+    .classes-card-header {
+      padding: 14px 15px;
+    }
+  }
+</style>
+
+
+<div class="classes-page">
+
+  <!-- Page Header -->
+  <div class="classes-header">
+    <div class="classes-heading">
+      <div class="classes-icon">◈</div>
+
+      <div>
+        <h1 class="classes-title">My Classes</h1>
+        <p class="classes-subtitle">
+          All sessions you've taught or scheduled
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  {% if classes %}
+
+    <div class="card classes-card">
+
+      <!-- Directory Header -->
+      <div class="classes-card-header">
+        <div class="classes-card-title">
+          <span class="classes-card-title-icon">▣</span>
+          Session Directory
+
+          <span class="class-count">
+            {{ classes|length }}
+          </span>
         </div>
-      </td>
-    </tr>
-    {% endwith %}
-    {% endfor %}
-    </tbody>
-  </table>
+      </div>
+
+
+      <!-- Table -->
+      <div class="classes-scroll">
+
+        <table class="classes-table">
+
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Course</th>
+              <th>Topic</th>
+              <th>Students</th>
+              <th>Attendance</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+          {% for cls in classes %}
+
+            {% with s=cls.attendance_summary %}
+
+            <tr>
+
+              <!-- Date -->
+              <td>
+                <div class="class-date">
+
+                  <div class="date-box">
+                    <div class="date-month">
+                      {{ cls.date|date:"M" }}
+                    </div>
+                    <div class="date-day">
+                      {{ cls.date|date:"d" }}
+                    </div>
+                  </div>
+
+                  <div class="date-info">
+                    <div class="date-year">
+                      {{ cls.date|date:"Y" }}
+                    </div>
+
+                    <div class="class-time">
+                      {% if cls.start_time %}
+                        {{ cls.start_time|time:"H:i" }}
+                        {% if cls.end_time %}
+                          – {{ cls.end_time|time:"H:i" }}
+                        {% endif %}
+                      {% else %}
+                        —
+                      {% endif %}
+                    </div>
+                  </div>
+
+                </div>
+              </td>
+
+
+              <!-- Course -->
+              <td>
+                <div class="course-name">
+                  {{ cls.course.name }}
+                </div>
+
+                <span class="course-label">
+                  Course
+                </span>
+              </td>
+
+
+              <!-- Topic -->
+              <td>
+
+                {% if cls.topic %}
+
+                  <div class="topic-name">
+                    {{ cls.topic.title }}
+                  </div>
+
+                  <div class="topic-meta">
+                    <span class="topic-tag">
+                      Week {{ cls.topic.week }}
+                    </span>
+
+                    <span class="topic-tag">
+                      Day {{ cls.topic.day }}
+                    </span>
+                  </div>
+
+                {% else %}
+
+                  <span class="text-muted text-sm">
+                    No topic assigned
+                  </span>
+
+                {% endif %}
+
+              </td>
+
+
+              <!-- Students -->
+              <td>
+                <span class="student-count">
+                  <span class="student-count-icon">◉</span>
+                  {{ cls.students.count }}
+                </span>
+              </td>
+
+
+              <!-- Attendance -->
+              <td class="attendance-cell">
+
+                {% if s.total > 0 %}
+
+                  <div class="attendance-top">
+
+                    <span class="attendance-number">
+                      {{ s.present }}/{{ s.total }} present
+                    </span>
+
+                    <span class="attendance-percent">
+                      {% widthratio s.present s.total 100 %}%
+                    </span>
+
+                  </div>
+
+                  <div class="attendance-bar">
+                    <div
+                      class="attendance-fill"
+                      style="width:{% widthratio s.present s.total 100 %}%"
+                    ></div>
+                  </div>
+
+                {% else %}
+
+                  <span class="not-taken">
+                    <span class="not-taken-dot"></span>
+                    Not taken
+                  </span>
+
+                {% endif %}
+
+              </td>
+
+
+              <!-- Actions -->
+              <td>
+
+                <div class="class-actions">
+
+                  <a
+                    href="{% url 'tutor_class_detail' cls.pk %}"
+                    class="btn btn-secondary btn-sm"
+                    title="View class"
+                  >
+                    View
+                  </a>
+
+                  <a
+                    href="{% url 'take_attendance' cls.pk %}"
+                    class="btn btn-primary btn-sm"
+                    title="Take attendance"
+                  >
+                    Attendance
+                  </a>
+
+                  <a
+                    href="{% url 'tutor_class_delete' cls.pk %}"
+                    class="btn btn-danger btn-sm"
+                    title="Delete class"
+                  >
+                    Del
+                  </a>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+            {% endwith %}
+
+          {% endfor %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  {% else %}
+
+    <!-- Empty State -->
+    <div class="card classes-empty">
+
+      <div class="classes-empty-icon">
+        ◈
+      </div>
+
+      <div class="classes-empty-title">
+        No Classes Yet
+      </div>
+
+      <p class="classes-empty-text">
+        No teaching sessions have been recorded or scheduled yet.
+        Create your first class to get started.
+      </p>
+
+    </div>
+
+  {% endif %}
+
 </div>
-{% else %}
-<div class="empty-state card"><div class="icon">◈</div><p>No classes yet. Create your first class to get started.</p></div>
-{% endif %}
+
 {% endblock %}

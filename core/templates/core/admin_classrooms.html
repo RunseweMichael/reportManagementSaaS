@@ -1,55 +1,780 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}Classrooms – Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Classrooms{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div><h1 class="page-title">All Classrooms</h1><p class="page-sub">Every cohort across all tutors</p></div>
-   <form method="post" action="{% url 'admin_sync_courses' %}">
-  {% csrf_token %}
-  <a href="{% url 'admin_classroom_create' %}" class="btn btn-primary">+ Create Cohort</a>
-</form>
-</div>
+
+<style>
+  /* =========================================================
+     CLASSROOMS PAGE
+  ========================================================= */
+
+  .classrooms-page {
+    width: 100%;
+  }
+
+  /* ---------- Header ---------- */
+
+  .classrooms-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .classrooms-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .classrooms-icon {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 1.3rem;
+    background: linear-gradient(
+      135deg,
+      rgba(129, 140, 248, .18),
+      rgba(110, 231, 183, .12)
+    );
+    border: 1px solid rgba(129, 140, 248, .22);
+  }
+
+  .classrooms-title {
+    margin: 0 0 5px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.55rem;
+    font-weight: 750;
+    letter-spacing: -.025em;
+    color: var(--text);
+  }
+
+  .classrooms-subtitle {
+    margin: 0;
+    color: var(--text);
+    font-size: .86rem;
+  }
+
+  .classrooms-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ---------- Filters ---------- */
+
+  .classrooms-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 7px;
+    margin-bottom: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .classrooms-filter-bar a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 11px;
+    border-radius: 7px;
+    color: var(--text);
+    font-size: .76rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background .18s ease,
+      color .18s ease,
+      transform .18s ease;
+  }
+
+  .classrooms-filter-bar a:hover {
+    color: var(--text);
+    background: var(--surface2);
+    transform: translateY(-1px);
+  }
+
+  .classrooms-filter-bar a.active {
+    color: var(--text);
+    background: rgba(110, 231, 183, .11);
+    box-shadow: inset 0 0 0 1px rgba(110, 231, 183, .16);
+  }
+
+  .filter-divider {
+    width: 1px;
+    height: 22px;
+    margin: 0 4px;
+    background: var(--border);
+  }
+
+  /* ---------- Tutor Filter ---------- */
+
+.tutor-filter {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: 2px;
+}
+
+.tutor-filter label {
+  color: var(--text);
+  font-size: .72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tutor-filter select {
+  min-width: 145px;
+  height: 32px;
+  padding: 0 30px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .74rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.tutor-filter select:hover {
+  border-color: var(--accent2);
+}
+
+.tutor-filter select:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, .1);
+}
+
+@media (max-width: 600px) {
+  .tutor-filter {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .tutor-filter select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+  /* ---------- Main Card ---------- */
+
+  .classrooms-card {
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .classrooms-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .classrooms-card-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'Syne', sans-serif;
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .classrooms-card-title-icon {
+    color: var(--accent2);
+    font-size: .9rem;
+  }
+
+  .classrooms-count {
+    padding: 4px 9px;
+    border-radius: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: .7rem;
+    font-weight: 600;
+  }
+
+  .classrooms-table-wrap {
+    border: none;
+    border-radius: 0;
+  }
+
+  .classrooms-table {
+    min-width: 1050px;
+  }
+
+  .classrooms-table th {
+    padding: 12px 16px;
+    font-size: .67rem;
+    letter-spacing: .07em;
+    text-transform: none;
+    white-space: nowrap;
+  }
+
+  .classrooms-table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+  }
+
+  .classrooms-table tbody tr {
+    transition: background .18s ease;
+  }
+
+  .classrooms-table tbody tr:hover {
+    background: rgba(129, 140, 248, .035);
+  }
+
+  /* ---------- Classroom identity ---------- */
+
+  .classroom-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 175px;
+  }
+
+  .classroom-avatar {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(
+      135deg,
+      rgba(129, 140, 248, .18),
+      rgba(110, 231, 183, .12)
+    );
+    border: 1px solid rgba(129, 140, 248, .18);
+    color: var(--accent2);
+    font-family: 'Syne', sans-serif;
+    font-size: .8rem;
+    font-weight: 800;
+  }
+
+  .classroom-name {
+    font-weight: 650;
+    color: var(--text);
+    font-size: .84rem;
+    line-height: 1.3;
+  }
+
+  .classroom-date {
+    margin-top: 3px;
+    color: var(--text);
+    font-size: .7rem;
+  }
+
+  /* ---------- Course / Tutor ---------- */
+
+  .course-name {
+    max-width: 180px;
+    color: var(--text);
+    font-size: .8rem;
+    line-height: 1.4;
+  }
+
+  .tutor-link {
+    color: var(--text);
+    font-size: .8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color .18s ease;
+  }
+
+  .tutor-link:hover {
+    color: var(--text);
+  }
+
+  /* ---------- Numbers ---------- */
+
+  .table-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 28px;
+    padding: 0 7px;
+    border-radius: 7px;
+    background: var(--surface2);
+    color: var(--text);
+    font-size: .76rem;
+    font-weight: 700;
+  }
+
+  /* ---------- Progress ---------- */
+
+  .progress-cell {
+    min-width: 115px;
+  }
+
+  .progress-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+
+  .progress-value {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .progress-bar-classroom {
+    width: 100%;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: var(--surface2);
+  }
+
+  .progress-bar-classroom .progress-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      var(--accent2),
+      var(--accent)
+    );
+  }
+
+  /* ---------- Actions ---------- */
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  .action-buttons .btn {
+    min-width: 48px;
+    justify-content: center;
+  }
+
+  /* ---------- Empty State ---------- */
+
+  .classrooms-empty {
+    padding: 55px 25px !important;
+    text-align: center;
+  }
+
+  .empty-classroom-icon {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 1.3rem;
+  }
+
+  .empty-classroom-title {
+    margin: 0 0 5px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+  }
+
+  .empty-classroom-text {
+    margin: 0;
+    color: var(--text);
+    font-size: .78rem;
+  }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 900px) {
+    .classrooms-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .classrooms-actions {
+      width: 100%;
+    }
+
+    .classrooms-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .classrooms-heading {
+      gap: 10px;
+    }
+
+    .classrooms-icon {
+      width: 42px;
+      height: 42px;
+      flex-basis: 42px;
+      border-radius: 11px;
+    }
+
+    .classrooms-title {
+      font-size: 1.3rem;
+    }
+
+    .classrooms-filter-bar {
+      gap: 4px;
+    }
+
+    .classrooms-filter-bar a {
+      padding: 0 9px;
+      font-size: .7rem;
+    }
+
+    .filter-divider {
+      display: none;
+    }
+
+    .classrooms-card-header {
+      padding: 14px;
+    }
+  }
+</style>
+
+<div class="classrooms-page">
+
+  <!-- =======================================================
+       PAGE HEADER
+  ======================================================== -->
+  <div class="classrooms-header">
+
+    <div class="classrooms-heading">
+
+      <div class="classrooms-icon">
+        ◈
+      </div>
+
+      <div>
+        <h1 class="classrooms-title">All Classrooms</h1>
+        <p class="classrooms-subtitle">
+          Every cohort across all tutors
+        </p>
+      </div>
+
+    </div>
+
+    <div class="classrooms-actions">
+      <form method="post" action="{% url 'admin_sync_courses' %}">
+        {% csrf_token %}
+
+        <a href="{% url 'admin_classroom_create' %}"
+           class="btn btn-primary">
+          + Create Cohort
+        </a>
+      </form>
+    </div>
+
+  </div>
 
 
+  <!-- =======================================================
+       FILTERS
+  ======================================================== -->
+  <div class="classrooms-filter-bar">
 
-<div class="filter-bar">
-  <a href="{% url 'admin_classrooms' %}" class="{% if not mode_filter and not status_filter and not tutor_filter %}active{% endif %}">All</a>
-  <a href="?mode=online"    class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
-  <a href="?mode=physical"  class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
-  <a href="?status=active"  class="{% if status_filter == 'active' %}active{% endif %}">Active</a>
-  <a href="?status=paused"  class="{% if status_filter == 'paused' %}active{% endif %}">Paused</a>
-  <a href="?status=completed" class="{% if status_filter == 'completed' %}active{% endif %}">Completed</a>
-  {% if tutors %}<span style="color:var(--border);padding:0 4px">|</span>
-  {% for t in tutors %}<a href="?tutor={{ t.pk }}" class="{% if tutor_filter == t.pk|stringformat:'s' %}active{% endif %}">{{ t.name }}</a>{% endfor %}{% endif %}
+    <a href="{% url 'admin_classrooms' %}"
+       class="{% if not mode_filter and not status_filter and not tutor_filter %}active{% endif %}">
+      All
+    </a>
+
+    <a href="?mode=online"
+       class="{% if mode_filter == 'online' %}active{% endif %}">
+      🌐 Online
+    </a>
+
+    <a href="?mode=physical"
+       class="{% if mode_filter == 'physical' %}active{% endif %}">
+      🏫 Physical
+    </a>
+
+    <span class="filter-divider"></span>
+
+    <a href="?status=active"
+       class="{% if status_filter == 'active' %}active{% endif %}">
+      Active
+    </a>
+
+    <a href="?status=paused"
+       class="{% if status_filter == 'paused' %}active{% endif %}">
+      Paused
+    </a>
+
+    <a href="?status=completed"
+       class="{% if status_filter == 'completed' %}active{% endif %}">
+      Completed
+    </a>
+
+    {% if tutors %}
+  <span class="filter-divider"></span>
+
+  <div class="tutor-filter">
+    <label for="tutor-select">Tutor</label>
+
+    <select id="tutor-select"
+            onchange="window.location.href=this.value">
+
+      <option value="{% url 'admin_classrooms' %}"
+        {% if not tutor_filter %}selected{% endif %}>
+        All Tutors
+      </option>
+
+      {% for t in tutors %}
+        <option value="?tutor={{ t.pk }}"
+          {% if tutor_filter == t.pk|stringformat:'s' %}selected{% endif %}>
+          {{ t.name }}
+        </option>
+      {% endfor %}
+
+    </select>
+  </div>
+{% endif %}
+
+  </div>
+
+
+  <!-- =======================================================
+       CLASSROOM TABLE
+  ======================================================== -->
+  <div class="card classrooms-card">
+
+    <div class="classrooms-card-header">
+
+      <div class="classrooms-card-title">
+        <span class="classrooms-card-title-icon">▦</span>
+        Classroom Directory
+      </div>
+
+      <span class="classrooms-count">
+        Cohorts
+      </span>
+
+    </div>
+
+    <div class="table-wrap classrooms-table-wrap">
+
+      <table class="classrooms-table">
+
+        <thead>
+          <tr>
+            <th>Classroom</th>
+            <th>Course</th>
+            <th>Tutor</th>
+            <th>Mode</th>
+            <th>Students</th>
+            <th>Sessions</th>
+            <th>Progress</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        {% for cr in classrooms %}
+
+          <tr>
+
+            <!-- Classroom -->
+            <td>
+
+              <div class="classroom-name-cell">
+
+                <div class="classroom-avatar">
+                  {{ cr.name|slice:":1"|upper }}
+                </div>
+
+                <div>
+                  <div class="classroom-name">
+                    {{ cr.name }}
+                  </div>
+
+                  <div class="classroom-date">
+                    Started {{ cr.start_date|date:"M d, Y" }}
+                  </div>
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- Course -->
+            <td>
+
+              <div class="course-name">
+                {{ cr.course.name }}
+              </div>
+
+            </td>
+
+
+            <!-- Tutor -->
+            <td>
+
+              <a href="{% url 'admin_tutor_detail' cr.tutor.pk %}"
+                 class="tutor-link">
+                {{ cr.tutor.name }}
+              </a>
+
+            </td>
+
+
+            <!-- Mode -->
+            <td>
+
+              <span class="badge badge-{{ cr.tutor.mode }}">
+                {{ cr.tutor.get_mode_display }}
+              </span>
+
+            </td>
+
+
+            <!-- Students -->
+            <td>
+
+              <span class="table-number">
+                {{ cr.students.count }}
+              </span>
+
+            </td>
+
+
+            <!-- Sessions -->
+            <td>
+
+              <span class="table-number">
+                {{ cr.sessions.count }}
+              </span>
+
+            </td>
+
+
+            <!-- Progress -->
+            <td class="progress-cell">
+
+              {% if cr.end_date %}
+
+                <div class="progress-info">
+                  <span class="progress-value">
+                    {{ cr.progress_percent }}%
+                  </span>
+                </div>
+
+                <div class="progress-bar-classroom">
+                  <div class="progress-bar-fill"
+                       style="width:{{ cr.progress_percent }}%">
+                  </div>
+                </div>
+
+              {% else %}
+
+                <span class="text-muted text-sm">
+                  —
+                </span>
+
+              {% endif %}
+
+            </td>
+
+
+            <!-- Status -->
+            <td>
+
+              <span class="badge
+                badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">
+                {{ cr.get_status_display }}
+              </span>
+
+            </td>
+
+
+            <!-- Actions -->
+            <td>
+
+              <div class="action-buttons">
+
+                <a href="{% url 'admin_classroom_detail' cr.pk %}"
+                   class="btn btn-secondary btn-sm">
+                  View
+                </a>
+
+                <a href="{% url 'admin_classroom_edit' cr.pk %}"
+                   class="btn btn-primary btn-sm">
+                  Edit
+                </a>
+
+                <a href="{% url 'admin_classroom_delete' cr.pk %}"
+                   class="btn btn-danger btn-sm">
+                  Del
+                </a>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        {% empty %}
+
+          <tr>
+
+            <td colspan="10" class="classrooms-empty">
+
+              <div class="empty-classroom-icon">
+                ◈
+              </div>
+
+              <p class="empty-classroom-title">
+                No classrooms found
+              </p>
+
+              <p class="empty-classroom-text">
+                There are currently no classrooms matching your filters.
+              </p>
+
+            </td>
+
+          </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
 </div>
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Classroom</th><th>Course</th><th>Tutor</th><th>Mode</th><th>Students</th><th>Sessions</th><th>Progress</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody>
-    {% for cr in classrooms %}
-    <tr>
-      <td><div style="font-weight:600">{{ cr.name }}</div><div class="text-muted text-sm">{{ cr.start_date|date:"M d, Y" }}</div></td>
-      <td>{{ cr.course.name }}</td>
-      <td><a href="{% url 'admin_tutor_detail' cr.tutor.pk %}" style="color:var(--accent2)">{{ cr.tutor.name }}</a></td>
-      <td><span class="badge badge-{{ cr.tutor.mode }}">{{ cr.tutor.get_mode_display }}</span></td>
-      <td>{{ cr.students.count }}</td>
-      <td>{{ cr.sessions.count }}</td>
-      <td style="min-width:100px">
-        {% if cr.end_date %}<div class="text-sm" style="margin-bottom:3px">{{ cr.progress_percent }}%</div>
-        <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ cr.progress_percent }}%"></div></div>
-        {% else %}<span class="text-muted text-sm">—</span>{% endif %}
-      </td>
-      <td><span class="badge badge-{% if cr.status == 'active' %}active{% elif cr.status == 'paused' %}submitted{% else %}draft{% endif %}">{{ cr.get_status_display }}</span></td>
-      <td>
-        <a href="{% url 'admin_classroom_detail' cr.pk %}" class="btn btn-secondary btn-sm">View</a>
-        <a href="{% url 'admin_classroom_edit' cr.pk %}" class="btn btn-primary btn-sm">Edit</a>
-        <a href="{% url 'admin_classroom_delete' cr.pk %}" class="btn btn-danger btn-sm">Del</a>
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="10" class="text-muted" style="text-align:center;padding:32px">No classrooms found.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+
 {% endblock %}

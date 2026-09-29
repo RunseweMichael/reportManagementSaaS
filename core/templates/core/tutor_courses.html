@@ -1,30 +1,503 @@
 {% extends "core/tutor_base.html" %}
+
 {% block title %}Courses – Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Courses{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div><h1 class="page-title">Courses</h1><p class="page-sub">{{ courses.count }} course{{ courses.count|pluralize }}</p></div>
-  <!-- <a href="{% url 'tutor_course_create' %}" class="btn btn-primary">+ Add Course</a> -->
+
+<style>
+  .courses-page {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ───────────── Header ───────────── */
+
+  .courses-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .courses-heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .courses-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--accent2) 14%, transparent);
+    color: var(--accent2);
+    border: 1px solid color-mix(in srgb, var(--accent2) 25%, var(--border));
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .courses-title {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .courses-subtitle {
+    margin: 5px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .course-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 8px;
+    margin-left: 5px;
+    border-radius: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* ───────────── Directory Card ───────────── */
+
+  .courses-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .courses-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .directory-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .directory-title-icon {
+    color: var(--accent);
+    font-size: 16px;
+  }
+
+  .directory-hint {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* ───────────── Table ───────────── */
+
+  .courses-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .courses-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+  }
+
+  .courses-table th {
+    padding: 13px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    
+    letter-spacing: .7px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .courses-table td {
+    padding: 17px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+
+  .courses-table tbody tr {
+    transition: background .2s ease;
+  }
+
+  .courses-table tbody tr:hover {
+    background: color-mix(in srgb, var(--accent2) 4%, var(--surface));
+  }
+
+  .courses-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* ───────────── Course Name ───────────── */
+
+  .course-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 220px;
+  }
+
+  .course-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--accent2) 13%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent2) 25%, var(--border));
+    color: var(--accent2);
+    font-size: 15px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .course-name-text {
+    min-width: 0;
+  }
+
+  .course-name-title {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .course-description {
+    max-width: 280px;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* ───────────── Code ───────────── */
+
+  .course-code {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .3px;
+  }
+
+  /* ───────────── Stats ───────────── */
+
+  .course-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .course-stat-icon {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .duration {
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ───────────── Actions ───────────── */
+
+  .course-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .course-action:hover {
+    transform: translateY(-1px);
+  }
+
+  /* ───────────── Empty State ───────────── */
+
+  .courses-empty {
+    padding: 60px 25px;
+    text-align: center;
+  }
+
+  .empty-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 15px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 23px;
+  }
+
+  .empty-title {
+    margin: 0 0 6px;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .empty-text {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* ───────────── Responsive ───────────── */
+
+  @media (max-width: 700px) {
+    .courses-header {
+      margin-bottom: 20px;
+    }
+
+    .courses-title {
+      font-size: 23px;
+    }
+
+    .courses-icon {
+      width: 44px;
+      height: 44px;
+    }
+
+    .courses-card-header {
+      padding: 15px 16px;
+    }
+
+    .directory-hint {
+      display: none;
+    }
+
+    .courses-table {
+      min-width: 720px;
+    }
+
+    .courses-table th,
+    .courses-table td {
+      padding-left: 14px;
+      padding-right: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .courses-heading {
+      gap: 11px;
+    }
+
+    .courses-title {
+      font-size: 21px;
+    }
+
+    .courses-subtitle {
+      font-size: 12px;
+    }
+  }
+</style>
+
+<div class="courses-page">
+
+  <!-- Page Header -->
+  <div class="courses-header">
+    <div class="courses-heading">
+
+      <div class="courses-icon">
+        📚
+      </div>
+
+      <div>
+        <h1 class="courses-title">Courses</h1>
+
+        <p class="courses-subtitle">
+          Manage and explore available courses
+          <span class="course-count">{{ courses.count }}</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- Course Directory -->
+  <div class="courses-card">
+
+    <div class="courses-card-header">
+
+      <h2 class="directory-title">
+        <span class="directory-title-icon">▦</span>
+        Course Directory
+      </h2>
+
+      <span class="directory-hint">
+        {{ courses.count }} course{{ courses.count|pluralize }}
+      </span>
+
+    </div>
+
+
+    <div class="courses-table-wrap">
+
+      <table class="courses-table">
+
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Duration</th>
+            <th>Modules</th>
+            <th>Topics</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        {% for c in courses %}
+
+          <tr>
+
+            <!-- Course -->
+            <td>
+
+              <div class="course-name">
+
+                <div class="course-avatar">
+                  {{ c.name|slice:":1"|upper }}
+                </div>
+
+                <div class="course-name-text">
+
+                  <div class="course-name-title">
+                    {{ c.name }}
+                  </div>
+
+                  <div class="course-description">
+                    {{ c.description|truncatechars:50 }}
+                  </div>
+
+                </div>
+
+              </div>
+
+            </td>
+
+            <!-- Duration -->
+            <td>
+              <span class="duration">
+                {{ c.duration_weeks }} week{{ c.duration_weeks|pluralize }}
+              </span>
+            </td>
+
+
+            <!-- Modules -->
+            <td>
+              <span class="course-stat">
+                <span class="course-stat-icon">▦</span>
+                {{ c.module_count }}
+              </span>
+            </td>
+
+
+            <!-- Topics -->
+            <td>
+              <span class="course-stat">
+                <span class="course-stat-icon">☷</span>
+                {{ c.topic_count }}
+              </span>
+            </td>
+
+
+            <!-- Actions -->
+            <td>
+
+              <div class="flex gap-2">
+
+                <a
+                  href="{% url 'tutor_course_detail' c.pk %}"
+                  class="btn btn-secondary btn-sm course-action"
+                >
+                  <span>☷</span>
+                  Add Topics
+                </a>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        {% empty %}
+
+          <tr>
+            <td colspan="6">
+
+              <div class="courses-empty">
+
+                <div class="empty-icon">
+                  📚
+                </div>
+
+                <h3 class="empty-title">
+                  No courses yet
+                </h3>
+
+                <p class="empty-text">
+                  There are currently no courses available.
+                </p>
+
+              </div>
+
+            </td>
+          </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
 </div>
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr><th>Name</th><th>Code</th><th>Duration</th><th>Modules</th><th>Topics</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
-    {% for c in courses %}
-    <tr>
-      <td><div style="font-weight:600">{{ c.name }}</div><div class="text-muted text-sm">{{ c.description|truncatechars:50 }}</div></td>
-      <td><span class="tag">{{ c.code }}</span></td>
-      <td>{{ c.duration_weeks }} weeks</td>
-      <td>{{ c.module_count }}</td>
-      <td>{{ c.topic_count }}</td>
-      <td><div class="flex gap-2"><a href="{% url 'tutor_course_detail' c.pk %}" class="btn btn-secondary btn-sm">Add Topics</a></div></td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6" class="text-muted" style="text-align:center;padding:32px">No courses yet.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+
 {% endblock %}

@@ -1,99 +1,997 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}Students - Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Students{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <h1 class="page-title">Students</h1>
-    <p class="page-sub">{{ students.count }} student{{ students.count|pluralize }}</p>
+
+<style>
+  /* =========================================================
+     STUDENTS DIRECTORY
+     ========================================================= */
+
+  .students-page {
+    max-width: 1450px;
+  }
+
+  /* ---------- Header ---------- */
+
+  .students-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .students-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+  }
+
+  .students-heading-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(129, 140, 248, .12);
+    border: 1px solid rgba(129, 140, 248, .22);
+    color: var(--accent2);
+  }
+
+  .students-heading-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .students-title {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+  }
+
+  .students-subtitle {
+    margin: 5px 0 0;
+    color: var(--text);
+    font-size: .8rem;
+  }
+
+  .sync-form {
+    flex: 0 0 auto;
+  }
+
+  .sync-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  /* ---------- Filters ---------- */
+
+  .students-filter {
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .filter-divider {
+    width: 1px;
+    height: 20px;
+    margin: 0 5px;
+    background: var(--border);
+  }
+
+  .tutor-filter {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: 2px;
+  }
+
+  .tutor-filter label {
+    color: var(--text);
+    font-size: .7rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .tutor-filter select {
+    min-width: 150px;
+    height: 32px;
+    padding: 0 30px 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: .74rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .tutor-filter select:hover {
+    border-color: var(--accent2);
+  }
+
+  .tutor-filter select:focus {
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, .1);
+  }
+
+  /* ---------- Directory card ---------- */
+
+  .students-card {
+    overflow: hidden;
+  }
+
+  .students-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .directory-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .directory-icon {
+    width: 31px;
+    height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--surface2);
+    color: var(--accent);
+  }
+
+  .directory-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .directory-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .88rem;
+    font-weight: 800;
+  }
+
+  .directory-count {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: .66rem;
+    font-weight: 700;
+  }
+
+  /* ---------- Student cells ---------- */
+
+  .student-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 170px;
+  }
+
+  .student-avatar {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent2), #6366f1);
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: .72rem;
+    font-weight: 800;
+  }
+
+  .student-details {
+    min-width: 0;
+  }
+
+  .student-name {
+    display: block;
+    max-width: 130px;
+    overflow: hidden;
+    color: var(--text);
+    font-size: .8rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .student-email {
+    display: block;
+    max-width: 130px;
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--text);
+    font-size: .68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ---------- Tutor ---------- */
+
+  .tutor-link {
+    color: var(--text);
+    font-size: .76rem;
+    font-weight: 600;
+  }
+
+  .unassigned {
+    color: var(--text);
+    font-size: .72rem;
+  }
+
+  /* ---------- Classroom/course tags ---------- */
+
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 210px;
+  }
+
+  .directory-tag {
+    display: inline-block;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0 !important;
+    color: var(--text) !important;
+  }
+
+  .course-tag {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0 2px 2px 0 !important;
+  }
+
+  /* ---------- Attendance ---------- */
+
+  .attendance-cell {
+    width: 115px;
+    min-width: 115px;
+  }
+
+  .attendance-value {
+    margin-top: 4px;
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 600;
+  }
+
+  .student-progress {
+    height: 6px;
+  }
+
+  /* ---------- Actions ---------- */
+
+  .student-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .student-actions .btn {
+    min-width: 0;
+  }
+
+  /* ---------- Empty state ---------- */
+
+  .students-empty {
+    padding: 55px 20px;
+    text-align: center;
+  }
+
+  .students-empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--surface2);
+    color: var(--muted);
+  }
+
+  .students-empty-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .students-empty-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .92rem;
+    font-weight: 800;
+  }
+
+  .students-empty-text {
+    margin-top: 5px;
+    color: var(--text);
+    font-size: .74rem;
+  }
+
+/* ---------- Student Search ---------- */
+
+.student-search {
+  position: relative;
+  width: 280px;
+}
+
+.student-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.student-search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px 0 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .74rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.student-search input::placeholder {
+  color: var(--text);
+}
+
+.student-search input:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, .1);
+}
+
+.search-result-count {
+  margin-top: 5px;
+  color: var(--text);
+  font-size: .65rem;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+  .students-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .student-search {
+    width: 100%;
+  }
+
+  .directory-heading {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 900px) {
+    .students-header {
+      flex-direction: column;
+    }
+
+    .sync-form {
+      width: 100%;
+    }
+
+    .sync-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .students-title {
+      font-size: 1.25rem;
+    }
+
+    .students-heading-icon {
+      width: 40px;
+      height: 40px;
+      flex-basis: 40px;
+    }
+
+    .filter-divider {
+      display: none;
+    }
+
+    .tutor-filter {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .tutor-filter select {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .students-card-header {
+      padding: 14px;
+    }
+
+    .student-actions {
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+
+<div class="students-page">
+
+  <!-- =======================================================
+       PAGE HEADER
+       ======================================================= -->
+
+  <div class="students-header">
+
+    <div class="students-heading">
+
+      <div class="students-heading-icon">
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+
+      <div>
+
+        <h1 class="students-title">
+          Students
+        </h1>
+
+        <p class="students-subtitle">
+          {{ students.count }} student{{ students.count|pluralize }}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <form method="post"
+          action="{% url 'admin_sync_students' %}"
+          class="sync-form">
+
+      {% csrf_token %}
+
+      <button type="submit" class="btn btn-primary sync-btn">
+        <span>🔄</span>
+        <span>Sync Students</span>
+      </button>
+
+    </form>
+
   </div>
-<form method="post" action="{% url 'admin_sync_students' %}">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-primary">🔄 Sync Students</button>
-</form>
+
+
+  <!-- =======================================================
+       FILTERS
+       ======================================================= -->
+
+  <div class="filter-bar students-filter">
+
+    <a href="{% url 'admin_students' %}"
+       class="{% if not mode_filter and not tutor_filter %}active{% endif %}">
+      All
+    </a>
+
+    <a href="?mode=online"
+       class="{% if mode_filter == 'online' %}active{% endif %}">
+      🌐 Online
+    </a>
+
+    <a href="?mode=physical"
+       class="{% if mode_filter == 'physical' %}active{% endif %}">
+      🏫 Physical
+    </a>
+
+    <span class="filter-divider"></span>
+
+    <a href="?status=completed"
+       class="{% if status_filter == 'completed' %}active{% endif %}">
+      🎓 Completed
+    </a>
+
+
+    {% if tutors %}
+
+      <span class="filter-divider"></span>
+
+      <div class="tutor-filter">
+
+        <label for="student-tutor-select">
+          Tutor
+        </label>
+
+        <select id="student-tutor-select"
+                onchange="window.location.href=this.value">
+
+          <option value="{% url 'admin_students' %}"
+                  {% if not tutor_filter %}selected{% endif %}>
+            All Tutors
+          </option>
+
+          {% for t in tutors %}
+
+            <option value="?tutor={{ t.pk }}"
+                    {% if tutor_filter == t.pk|stringformat:'s' %}selected{% endif %}>
+              {{ t.name }}
+            </option>
+
+          {% endfor %}
+
+        </select>
+
+      </div>
+
+    {% endif %}
+
+  </div>
+
+
+  <!-- =======================================================
+       STUDENT DIRECTORY
+       ======================================================= -->
+
+  <div class="card students-card">
+
+    
+<div class="students-card-header">
+
+  <div class="directory-heading">
+
+    <div class="directory-icon">
+      <svg viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="1.8"
+           stroke-linecap="round"
+           stroke-linejoin="round">
+
+        <path d="M8 6h13"/>
+        <path d="M8 12h13"/>
+        <path d="M8 18h13"/>
+        <path d="M3 6h.01"/>
+        <path d="M3 12h.01"/>
+        <path d="M3 18h.01"/>
+
+      </svg>
+    </div>
+
+    <div class="directory-title">
+      Student Directory
+    </div>
+
+    <div class="directory-count" id="student-count">
+      {{ students.count }} record{{ students.count|pluralize }}
+    </div>
+
+  </div>
+
+
+  <!-- Student Search -->
+
+  <div class="student-search">
+
+    <svg class="student-search-icon"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round">
+
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.3-4.3"></path>
+
+    </svg>
+
+    <input
+      type="search"
+      id="student-search"
+      placeholder="Search student name or email..."
+      autocomplete="off"
+    >
+
+  </div>
+
 </div>
 
-<div class="filter-bar">
-  <a href="{% url 'admin_students' %}" class="{% if not mode_filter and not tutor_filter %}active{% endif %}">All</a>
-  <a href="?mode=online"   class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
-  <a href="?mode=physical" class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
-  {% if tutors %}
-  <span style="color:var(--border);padding:0 4px">|</span>
-  {% for t in tutors %}
-  <a href="?tutor={{ t.pk }}" class="{% if tutor_filter == t.pk|stringformat:'s' %}active{% endif %}">{{ t.name }}</a>
-  {% endfor %}
-  {% endif %}
-</div>
 
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th>Student</th>
-        <th>Mode</th>
-        <th>Tutor</th>
-        <th>Classrooms</th>
-        <th>Courses</th>
-        <th>Attendance</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for s in students %}
-    <tr>
-      <td>
-        <div class="flex items-center gap-2">
-          <div class="user-avatar" style="width:30px;height:30px;font-size:.78rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
-            {{ s.full_name|slice:":1"|upper }}
-          </div>
-          <div>
-            <a href="{% url 'admin_student_detail' s.pk %}" style="font-weight:600;color:var(--accent)">{{ s.name }}</a>
-            {% if s.email %}<div class="text-muted text-sm">{{ s.email }}</div>{% endif %}
-          </div>
+
+
+    {% if students %}
+
+    <div class="table-wrap"
+         style="border:none;border-radius:0">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Student</th>
+            <th>Mode</th>
+            <th>Tutor</th>
+            <th>Classrooms</th>
+            <th>Courses</th>
+            <th>Attendance</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+        
+{% for s in students %}
+
+<tr class="student-row"
+    data-name="{{ s.name|default:''|lower }}"
+    data-email="{{ s.email|default:''|lower }}"
+    data-tutor="{% if s.tutor %}{{ s.tutor.name|lower }}{% endif %}"
+    data-mode="{{ s.mode|default:''|lower }}">
+
+    <!-- Student -->
+
+    <td>
+        <div class="student-cell">
+
+            <div class="student-avatar">
+                {{ s.name|slice:":1"|upper }}
+            </div>
+
+            <div class="student-details">
+
+                <a href="{% url 'admin_student_detail' s.pk %}"
+                   class="student-name"
+                   title="{{ s.name }}">
+                    {{ s.name }}
+                </a>
+
+                {% if s.email %}
+                    <div class="student-email"
+                         title="{{ s.email }}">
+                        {{ s.email }}
+                    </div>
+                {% endif %}
+
+            </div>
+
         </div>
-      </td>
-      <td><span class="badge badge-{{ s.mode }}">{{ s.get_mode_display }}</span></td>
-      <td>
-        {% if s.tutor %}
-        <a href="{% url 'admin_tutor_detail' s.tutor.pk %}" style="color:var(--accent2)">{{ s.tutor.name }}</a>
-        {% else %}<span class="text-muted">Unassigned</span>{% endif %}
-      </td>
-      <td>
-        {% for cr in s.classrooms.all %}
-        <a href="{% url 'admin_classroom_detail' cr.pk %}" class="tag" style="display:inline-block;margin-bottom:2px;color:var(--accent2)">
-          {{ cr.name|truncatechars:18 }}
-        </a>
-        {% empty %}<span class="text-muted text-sm">None</span>
+    </td>
+
+          <!-- Mode -->
+
+          <td>
+
+            <span class="badge badge-{{ s.mode }}">
+              {{ s.get_mode_display }}
+            </span>
+
+          </td>
+
+
+          <!-- Tutor -->
+
+          <td>
+
+            {% if s.tutor %}
+
+              <a href="{% url 'admin_tutor_detail' s.tutor.pk %}"
+                 class="tutor-link">
+                {{ s.tutor.name }}
+              </a>
+
+            {% else %}
+
+              <span class="unassigned">
+                Unassigned
+              </span>
+
+            {% endif %}
+
+          </td>
+
+
+          <!-- Classrooms -->
+
+          <td>
+
+            <div class="tag-list">
+
+              {% for cr in s.classrooms.all %}
+
+                <a href="{% url 'admin_classroom_detail' cr.pk %}"
+                   class="tag directory-tag"
+                   title="{{ cr.name }}">
+                  {{ cr.name|truncatechars:18 }}
+                </a>
+
+              {% empty %}
+
+                <span class="text-muted text-sm">
+                  None
+                </span>
+
+              {% endfor %}
+
+            </div>
+
+          </td>
+
+
+          <!-- Courses -->
+
+          <td>
+
+            <div class="tag-list">
+
+              {% for c in s.courses.all %}
+
+                <span class="tag course-tag"
+                      title="{{ c.name }}">
+                  {{ c.name }}
+                </span>
+
+              {% empty %}
+
+                <span class="text-muted text-sm">
+                  —
+                </span>
+
+              {% endfor %}
+
+            </div>
+
+          </td>
+
+
+          <!-- Attendance -->
+
+          <td>
+
+            <div class="attendance-cell">
+
+              <div class="progress-bar student-progress">
+
+                <div class="progress-bar-fill"
+                     style="width:{{ s.attendance_rate }}%">
+                </div>
+
+              </div>
+
+              <div class="attendance-value">
+                {{ s.attendance_rate }}%
+              </div>
+
+            </div>
+
+          </td>
+
+
+          <!-- Status -->
+
+          <td>
+
+            <span class="badge
+              {% if s.completed %}badge-draft{% elif s.active %}badge-active{% else %}badge-inactive{% endif %}">
+
+              {% if s.completed %}
+                🎓 Completed
+              {% elif s.active %}
+                Active
+              {% else %}
+                Inactive
+              {% endif %}
+
+            </span>
+
+          </td>
+
+
+          <!-- Actions -->
+
+          <td>
+
+            <div class="student-actions">
+
+              <a href="{% url 'admin_student_detail' s.pk %}"
+                 class="btn btn-primary btn-sm">
+                View
+              </a>
+
+              <a href="{% url 'admin_student_edit' s.pk %}"
+                 class="btn btn-secondary btn-sm">
+                Edit
+              </a>
+
+              {% if s.completed %}
+
+                <form method="post"
+                      action="{% url 'admin_student_reactivate' s.pk %}"
+                      style="margin:0"
+                      onsubmit="return confirm('Reactivate {{ s.name|escapejs }}? They will show up as active again.');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                    Reactivate
+                  </button>
+                </form>
+
+              {% else %}
+
+                <form method="post"
+                      action="{% url 'admin_student_mark_completed' s.pk %}"
+                      style="margin:0"
+                      onsubmit="return confirm('Mark {{ s.name|escapejs }} as completed? They will be hidden from the active roster and won\'t be re-added by future syncs.');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                    🎓 Mark Completed
+                  </button>
+                </form>
+
+              {% endif %}
+
+              <a href="{% url 'admin_student_assign' s.pk %}"
+                 class="btn btn-secondary btn-sm">
+                Assign
+              </a>
+
+            </div>
+
+          </td>
+
+        </tr>
+
         {% endfor %}
-      </td>
-      <td>{% for c in s.courses.all %}<span class="tag">{{ c.name }}</span> {% empty %}—{% endfor %}</td>
-      <td>
-        <div class="progress-bar"><div class="progress-bar-fill" style="width:{{ s.attendance_rate }}%"></div></div>
-        <div class="text-muted text-sm" style="margin-top:3px">{{ s.attendance_rate }}%</div>
-      </td>
-      <td>
-        <span class="badge {% if s.active %}badge-active{% else %}badge-inactive{% endif %}">
-          {% if s.active %}Active{% else %}Inactive{% endif %}
-        </span>
-      </td>
-      <td>
-        <div class="flex gap-2">
-          <a href="{% url 'admin_student_detail' s.pk %}"  class="btn btn-primary btn-sm">View</a>
-          <a href="{% url 'admin_student_edit' s.pk %}"    class="btn btn-secondary btn-sm">Edit</a>
-          <a href="{% url 'admin_student_delete' s.pk %}"  class="btn btn-danger btn-sm">Del</a>
-          <a href="{% url 'admin_student_assign' s.pk %}" class="btn btn-secondary btn-sm">Assign</a>
-        </div>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="8" class="text-muted" style="text-align:center;padding:32px">
-        No students found.
-      </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    {% else %}
+
+    <!-- Empty state -->
+
+    <div class="students-empty">
+
+      <div class="students-empty-icon">
+
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+
+      </div>
+
+      <div class="students-empty-title">
+        No students found
+      </div>
+
+      <div class="students-empty-text">
+        There are no students matching the selected filters.
+      </div>
+
+    </div>
+
+    {% endif %}
+
+  </div>
+
 </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput = document.getElementById("student-search");
+    const studentRows = document.querySelectorAll(".student-row");
+    const studentCount = document.getElementById("student-count");
+
+    if (!searchInput) {
+        return;
+    }
+
+    searchInput.addEventListener("input", function () {
+
+        const searchTerm = this.value.trim().toLowerCase();
+
+        let visibleCount = 0;
+
+        studentRows.forEach(function (row) {
+
+            const name = row.dataset.name || "";
+            const email = row.dataset.email || "";
+            const tutor = row.dataset.tutor || "";
+            const mode = row.dataset.mode || "";
+
+            const searchableText =
+                name + " " +
+                email + " " +
+                tutor + " " +
+                mode;
+
+            if (searchableText.includes(searchTerm)) {
+
+                row.style.display = "";
+                visibleCount++;
+
+            } else {
+
+                row.style.display = "none";
+
+            }
+
+        });
+
+        // Update record count
+        studentCount.textContent =
+            visibleCount +
+            (visibleCount === 1 ? " record" : " records");
+
+    });
+
+});
+</script>
+
+
+
 {% endblock %}

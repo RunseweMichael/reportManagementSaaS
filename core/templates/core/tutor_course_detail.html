@@ -1,100 +1,795 @@
 {% extends "core/tutor_base.html" %}
 {% block title %}{{ course.name }} – Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Courses / {{ course.name }}{% endblock %}
+
 {% block content %}
 
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <h1 class="page-title">{{ course.name }}</h1>
-    <p class="page-sub">{{ course.code }} · {{ course.duration_weeks }} weeks · {{ modules.count }} module{{ modules.count|pluralize }}</p>
-  </div>
-  <div class="flex gap-2">
-    <a href="{% url 'tutor_module_create' course.pk %}" class="btn btn-primary">+ Add Module</a>
-    <!-- <a href="{% url 'tutor_course_edit' course.pk %}" class="btn btn-secondary">Edit Course</a> -->
-    <a href="{% url 'tutor_courses' %}" class="btn btn-ghost">← Back</a>
-  </div>
-</div>
+<style>
+  .course-detail-page {
+    width: 100%;
+    min-width: 0;
+  }
 
-{% for module in modules %}
-<div class="card" style="margin-bottom:16px">
+  /* ── Course Header ──────────────────────────────────── */
 
-  <!-- Module header -->
-  <div class="flex justify-between items-center"
-       style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem">
-        {{ forloop.counter }}. {{ module.name }}
+  .course-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .course-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .course-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: rgba(129, 140, 248, .10);
+    border: 1px solid rgba(129, 140, 248, .20);
+    color: var(--accent2);
+    font-size: 1.2rem;
+  }
+
+  .course-heading-content {
+    min-width: 0;
+  }
+
+  .course-title {
+    margin: 0 0 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    line-height: 1.2;
+  }
+
+  .course-subtitle {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 0;
+    color: var(--muted);
+    font-size: .76rem;
+  }
+
+  .course-code {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 7px;
+    border-radius: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-family: monospace;
+    font-size: .65rem;
+    font-weight: 700;
+  }
+
+  .course-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  /* ── Module Card ────────────────────────────────────── */
+
+  .module-card {
+    margin-bottom: 16px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 17px 18px;
+    border-bottom: 1px solid var(--border);
+    background:
+      linear-gradient(
+        90deg,
+        rgba(129, 140, 248, .035),
+        transparent 60%
+      );
+  }
+
+  .module-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    min-width: 0;
+  }
+
+  .module-number {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(129, 140, 248, .10);
+    border: 1px solid rgba(129, 140, 248, .18);
+    color: var(--accent2);
+    font-family: 'Syne', sans-serif;
+    font-size: .72rem;
+    font-weight: 800;
+  }
+
+  .module-name {
+    font-family: 'Syne', sans-serif;
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .module-description {
+    max-width: 650px;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: .7rem;
+    line-height: 1.45;
+  }
+
+  .module-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── Topics ─────────────────────────────────────────── */
+
+  .topics-scroll {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .topics-scroll::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .topics-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .topics-scroll::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+  }
+
+  .topics-table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+  }
+
+  .topics-table th {
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .64rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-align: left;
+  }
+
+  .topics-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .topics-table tbody tr {
+    transition: background .18s ease;
+  }
+
+  .topics-table tbody tr:hover {
+    background: rgba(255,255,255,.018);
+  }
+
+  .topics-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .topic-week,
+  .topic-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .64rem;
+    font-weight: 700;
+  }
+
+  .topic-day {
+    color: var(--accent2);
+  }
+
+  .topic-title {
+    font-size: .78rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .topic-details {
+    max-width: 460px;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: .67rem;
+    line-height: 1.4;
+  }
+
+  .topic-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Empty Module State ─────────────────────────────── */
+
+  .module-empty {
+    padding: 24px 18px;
+    text-align: center;
+  }
+
+  .module-empty-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 9px;
+    border-radius: 10px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: .9rem;
+  }
+
+  .module-empty-text {
+    color: var(--muted);
+    font-size: .73rem;
+  }
+
+  .module-empty-text a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .module-empty-text a:hover {
+    text-decoration: underline;
+  }
+
+  /* ── No Modules ─────────────────────────────────────── */
+
+  .no-modules {
+    padding: 55px 24px;
+    text-align: center;
+  }
+
+  .no-modules-icon {
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    border-radius: 15px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-size: 1.25rem;
+  }
+
+  .no-modules-title {
+    margin-bottom: 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+  }
+
+  .no-modules-text {
+    max-width: 420px;
+    margin: 0 auto 17px;
+    color: var(--muted);
+    font-size: .74rem;
+    line-height: 1.5;
+  }
+
+  /* ── Orphan Topics ─────────────────────────────────── */
+
+  .orphan-card {
+    margin-top: 18px;
+    overflow: hidden;
+    border-color: rgba(248, 113, 113, .18);
+  }
+
+  .orphan-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(248, 113, 113, .025);
+  }
+
+  .orphan-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(248, 113, 113, .08);
+    color: var(--warn);
+    font-size: .78rem;
+  }
+
+  .orphan-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .86rem;
+    font-weight: 700;
+  }
+
+  .orphan-subtitle {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: .66rem;
+  }
+
+  .orphan-topic-title {
+    font-size: .77rem;
+    font-weight: 600;
+  }
+
+  .orphan-delete {
+    color: var(--warn) !important;
+  }
+
+  /* ── Responsive ─────────────────────────────────────── */
+
+  @media (max-width: 720px) {
+    .course-detail-header {
+      flex-direction: column;
+    }
+
+    .course-actions {
+      width: 100%;
+    }
+
+    .course-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .course-title {
+      font-size: 1.25rem;
+    }
+
+    .module-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .module-actions {
+      width: 100%;
+    }
+
+    .module-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .course-heading {
+      gap: 10px;
+    }
+
+    .course-icon {
+      width: 42px;
+      height: 42px;
+    }
+
+    .module-actions .btn {
+      font-size: .68rem;
+    }
+  }
+</style>
+
+
+<div class="course-detail-page">
+
+  <!-- ── Course Header ───────────────────────────────── -->
+
+  <div class="course-detail-header">
+
+    <div class="course-heading">
+
+      <div class="course-icon">
+        ▣
       </div>
-      {% if module.description %}
-      <div class="text-muted text-sm" style="margin-top:2px">{{ module.description }}</div>
-      {% endif %}
+
+      <div class="course-heading-content">
+
+        <h1 class="course-title">
+          {{ course.name }}
+        </h1>
+
+        <div class="course-subtitle">
+
+          <span class="course-code">
+            {{ course.code }}
+          </span>
+
+          <span>·</span>
+
+          <span>
+            {{ course.duration_weeks }} weeks
+          </span>
+
+          <span>·</span>
+
+          <span>
+            {{ modules.count }}
+            module{{ modules.count|pluralize }}
+          </span>
+
+        </div>
+
+      </div>
+
     </div>
-    <div class="flex gap-2">
-      <a href="{% url 'tutor_topic_create' course.pk module.pk %}" class="btn btn-primary btn-sm">+ Topic</a>
-      <a href="{% url 'tutor_module_edit' course.pk module.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-      <a href="{% url 'tutor_module_delete' course.pk module.pk %}" class="btn btn-danger btn-sm">Del</a>
+
+
+    <div class="course-actions">
+
+      <a
+        href="{% url 'tutor_module_create' course.pk %}"
+        class="btn btn-primary"
+      >
+        + Add Module
+      </a>
+
+      <!--
+      <a
+        href="{% url 'tutor_course_edit' course.pk %}"
+        class="btn btn-secondary"
+      >
+        Edit Course
+      </a>
+      -->
+
+      <a
+        href="{% url 'tutor_courses' %}"
+        class="btn btn-ghost"
+      >
+        ← Back
+      </a>
+
     </div>
+
   </div>
 
-  <!-- Topics under this module -->
-  {% if module.topics.all %}
-  <table class="table" style="margin-bottom:0">
-    <thead>
-      <tr><th>Week</th><th>Day</th><th>Topic</th><th></th></tr>
-    </thead>
-    <tbody>
-      {% for topic in module.topics.all %}
-      <tr>
-        <td>{{ topic.week }}</td>
-        <td>{{ topic.day }}</td>
-        <td>
-          <div style="font-weight:500">{{ topic.title }}</div>
-          {% if topic.details %}<div class="text-muted text-sm">{{ topic.details|truncatechars:60 }}</div>{% endif %}
-        </td>
-        <td style="text-align:right">
-          <a href="{% url 'tutor_topic_edit' course.pk module.pk topic.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-          <a href="{% url 'tutor_topic_delete' course.pk module.pk topic.pk %}" class="btn btn-ghost btn-sm" style="color:var(--warn)">Del</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <div class="empty-state" style="padding:16px">
-    <p style="color:var(--muted);font-size:.875rem">No topics yet.
-      <a href="{% url 'tutor_topic_create' course.pk module.pk %}">Add the first one →</a>
-    </p>
+
+  <!-- ── Modules ──────────────────────────────────────── -->
+
+  {% for module in modules %}
+
+  <div class="card module-card">
+
+    <!-- Module Header -->
+    <div class="module-header">
+
+      <div class="module-heading">
+
+        <div class="module-number">
+          {{ forloop.counter }}
+        </div>
+
+        <div>
+
+          <div class="module-name">
+            {{ module.name }}
+          </div>
+
+          {% if module.description %}
+
+          <div class="module-description">
+            {{ module.description }}
+          </div>
+
+          {% endif %}
+
+        </div>
+
+      </div>
+
+
+      <div class="module-actions">
+
+        <a
+          href="{% url 'tutor_topic_create' course.pk module.pk %}"
+          class="btn btn-primary btn-sm"
+        >
+          + Topic
+        </a>
+
+        <a
+          href="{% url 'tutor_module_edit' course.pk module.pk %}"
+          class="btn btn-secondary btn-sm"
+        >
+          Edit
+        </a>
+
+        <a
+          href="{% url 'tutor_module_delete' course.pk module.pk %}"
+          class="btn btn-danger btn-sm"
+        >
+          Del
+        </a>
+
+      </div>
+
+    </div>
+
+
+    <!-- Topics -->
+    {% if module.topics.all %}
+
+    <div class="topics-scroll">
+
+      <table class="topics-table">
+
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Day</th>
+            <th>Topic</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {% for topic in module.topics.all %}
+
+          <tr>
+
+            <td>
+              <span class="topic-week">
+                {{ topic.week }}
+              </span>
+            </td>
+
+            <td>
+              <span class="topic-day">
+                {{ topic.day }}
+              </span>
+            </td>
+
+            <td>
+
+              <div class="topic-title">
+                {{ topic.title }}
+              </div>
+
+              {% if topic.details %}
+
+              <div class="topic-details">
+                {{ topic.details|truncatechars:60 }}
+              </div>
+
+              {% endif %}
+
+            </td>
+
+            <td>
+
+              <div class="topic-actions">
+
+                <a
+                  href="{% url 'tutor_topic_edit' course.pk module.pk topic.pk %}"
+                  class="btn btn-ghost btn-sm"
+                >
+                  Edit
+                </a>
+
+                <a
+                  href="{% url 'tutor_topic_delete' course.pk module.pk topic.pk %}"
+                  class="btn btn-ghost btn-sm orphan-delete"
+                >
+                  Del
+                </a>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="module-empty">
+
+      <div class="module-empty-icon">
+        ◻
+      </div>
+
+      <div class="module-empty-text">
+
+        No topics yet.
+        <a href="{% url 'tutor_topic_create' course.pk module.pk %}">
+          Add the first one →
+        </a>
+
+      </div>
+
+    </div>
+
+    {% endif %}
+
   </div>
+
+
+  {% empty %}
+
+  <!-- ── No Modules ──────────────────────────────────── -->
+
+  <div class="card no-modules">
+
+    <div class="no-modules-icon">
+      ▣
+    </div>
+
+    <div class="no-modules-title">
+      No Modules Yet
+    </div>
+
+    <p class="no-modules-text">
+      Modules group topics into logical sections and help organize
+      the course curriculum.
+    </p>
+
+    <a
+      href="{% url 'tutor_module_create' course.pk %}"
+      class="btn btn-primary"
+    >
+      + Add First Module
+    </a>
+
+  </div>
+
+  {% endfor %}
+
+
+  <!-- ── Orphan Topics ──────────────────────────────── -->
+
+  {% if orphan_topics %}
+
+  <div class="card orphan-card">
+
+    <div class="orphan-header">
+
+      <div class="orphan-icon">
+        !
+      </div>
+
+      <div>
+
+        <div class="orphan-title">
+          Unassigned Topics
+        </div>
+
+        <div class="orphan-subtitle">
+          These topics are not currently assigned to a module.
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="topics-scroll">
+
+      <table class="topics-table">
+
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Day</th>
+            <th>Topic</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {% for topic in orphan_topics %}
+
+          <tr>
+
+            <td>
+              <span class="topic-week">
+                {{ topic.week }}
+              </span>
+            </td>
+
+            <td>
+              <span class="topic-day">
+                {{ topic.day }}
+              </span>
+            </td>
+
+            <td>
+              <div class="orphan-topic-title">
+                {{ topic.title }}
+              </div>
+            </td>
+
+            <td>
+
+              <div class="topic-actions">
+
+                <a
+                  href="{% url 'tutor_orphan_topic_delete' course.pk topic.pk %}"
+                  class="btn btn-ghost btn-sm orphan-delete"
+                >
+                  Del
+                </a>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
   {% endif %}
 
 </div>
-{% empty %}
-<div class="card" style="text-align:center;padding:48px">
-  <p style="color:var(--muted);margin-bottom:16px">No modules yet. Modules group topics into logical sections.</p>
-  <a href="{% url 'tutor_module_create' course.pk %}" class="btn btn-primary">+ Add First Module</a>
-</div>
-{% endfor %}
-
-{% if orphan_topics %}
-<div class="card" style="margin-top:16px">
-  <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:12px;color:var(--muted)">
-    Unassigned Topics
-  </div>
-  <table class="table">
-    <thead><tr><th>Week</th><th>Day</th><th>Topic</th><th></th></tr></thead>
-    <tbody>
-      {% for topic in orphan_topics %}
-      <tr>
-        <td>{{ topic.week }}</td><td>{{ topic.day }}</td>
-        <td>{{ topic.title }}</td>
-        <td style="text-align:right">
-          <a href="{% url 'tutor_orphan_topic_delete' course.pk topic.pk %}" class="btn btn-ghost btn-sm" style="color:var(--warn)">Del</a>        
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
 
 {% endblock %}

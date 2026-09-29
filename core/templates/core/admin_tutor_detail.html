@@ -1,64 +1,950 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}{{ tutor.name }} - Parach ICT Academy{% endblock %}
+
 {% block breadcrumb %}Tutors / {{ tutor.name }}{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <div class="flex items-center gap-3 mb-4"><div class="user-avatar" style="width:48px;height:48px;font-size:1.2rem;background:linear-gradient(135deg,{% if tutor.mode == 'online' %}var(--online),#059669{% else %}var(--physical),#7c3aed{% endif %})">{{ tutor.name|slice:":1"|upper }}</div><div><h1 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800">{{ tutor.name }}</h1><span class="badge badge-{{ tutor.mode }}">{{ tutor.get_mode_display }}</span></div></div>
-  </div>
-  {% if not tutor.is_approved %}
-<div class="card" style="margin-bottom:20px;border-color:rgba(251,146,60,.3);background:rgba(251,146,60,.05)">
-  <div class="flex justify-between items-center">
-    <div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700">Pending Approval</div>
-      <p class="text-muted text-sm">This tutor registered but hasn't been approved yet.</p>
+
+<!-- ==========================================
+     TUTOR HEADER
+     ========================================== -->
+
+<div class="tutor-detail-header">
+
+    <div class="tutor-profile">
+
+        <div class="tutor-detail-avatar
+            {% if tutor.mode == 'online' %}
+                avatar-online
+            {% else %}
+                avatar-physical
+            {% endif %}
+        ">
+            {{ tutor.name|slice:":1"|upper }}
+        </div>
+
+        <div class="tutor-profile-info">
+
+            <h1 class="page-title">
+                {{ tutor.name }}
+            </h1>
+
+            <div class="tutor-meta">
+                <span class="badge badge-{{ tutor.mode }}">
+                    {% if tutor.mode == 'online' %}
+                        🌐
+                    {% else %}
+                        🏫
+                    {% endif %}
+                    {{ tutor.get_mode_display }}
+                </span>
+
+                {% if tutor.is_approved %}
+                    <span class="badge badge-active">
+                        <span class="status-dot status-dot-active"></span>
+                        Approved
+                    </span>
+                {% else %}
+                    <span class="badge badge-submitted">
+                        <span class="status-dot status-dot-pending"></span>
+                        Pending Approval
+                    </span>
+                {% endif %}
+            </div>
+
+        </div>
+
     </div>
-    <form method="post" action="{% url 'admin_tutor_approve' tutor.pk %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-primary">Approve & Activate</button>
-    </form>
-  </div>
+
+
+    <!-- Actions -->
+
+    <div class="tutor-detail-actions">
+
+        <a href="{% url 'admin_tutor_edit' tutor.pk %}"
+           class="btn btn-secondary">
+            Edit
+        </a>
+
+        <form method="post"
+              action="{% url 'admin_tutor_reset_password' tutor.pk %}">
+            {% csrf_token %}
+
+            <button type="submit"
+                    class="btn btn-secondary">
+                Reset Password
+            </button>
+        </form>
+
+        <a href="{% url 'admin_tutor_delete' tutor.pk %}"
+           class="btn btn-danger">
+            Delete
+        </a>
+
+    </div>
+
 </div>
+
+
+<!-- ==========================================
+     PENDING APPROVAL
+     ========================================== -->
+
+{% if not tutor.is_approved %}
+
+<div class="approval-card">
+
+    <div class="approval-icon">
+        !
+    </div>
+
+    <div class="approval-content">
+
+        <div class="approval-title">
+            Pending Approval
+        </div>
+
+        <p>
+            This tutor registered but hasn't been approved yet.
+        </p>
+
+    </div>
+
+    <form method="post"
+          action="{% url 'admin_tutor_approve' tutor.pk %}">
+
+        {% csrf_token %}
+
+        <button type="submit"
+                class="btn btn-primary">
+            Approve & Activate
+        </button>
+
+    </form>
+
+</div>
+
 {% endif %}
-  
-  <div class="flex gap-2">
-    <a href="{% url 'admin_tutor_edit' tutor.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'admin_tutor_delete' tutor.pk %}" class="btn btn-danger">Delete</a>
-    <form method="post" action="{% url 'admin_tutor_reset_password' tutor.pk %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-secondary btn-sm">Reset Password</button>
-    </form>
-  </div>
-</div>
+
+
+<!-- ==========================================
+     INFORMATION + SCHEDULE
+     ========================================== -->
+
 <div class="grid-2 gap-4 mb-4">
-  <div class="card">
-    <div class="card-title mb-4">Info</div>
-    <table style="border:none"><tbody>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">First Name</td><td>{{ tutor.user.first_name|default:"—" }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">Bio</td><td>{{ tutor.user.last_name|default:"—" }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0;width:120px">Email</td><td>{{ tutor.user.email }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">Phone</td><td>{{ tutor.phone|default:"—" }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:6px 0">Joined</td><td>{{ tutor.created_at|date:"M d, Y" }}</td></tr>
-    </tbody></table>
-  </div>
-  <div class="card">
-    <div class="card-title mb-4">This Week's Schedule</div>
-    {% for cls in week_classes %}
-    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="font-weight:600;font-size:.875rem">{{ cls.course.name }}</div>
-      <div class="text-muted text-sm">{{ cls.date|date:"D, M d" }}{% if cls.start_time %} · {{ cls.start_time|time:"H:i" }}{% endif %}</div>
+
+    <!-- Tutor Information -->
+
+    <div class="card tutor-info-card">
+
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    Tutor Information
+                </div>
+
+                <div class="text-muted text-sm">
+                    Account and contact details
+                </div>
+            </div>
+        </div>
+
+
+        <div class="info-list">
+
+            <div class="info-row">
+                <span class="info-label">
+                    First Name
+                </span>
+
+                <span class="info-value">
+                    {{ tutor.user.first_name|default:"—" }}
+                </span>
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">
+                    Last Name
+                </span>
+
+                <span class="info-value">
+                    {{ tutor.user.last_name|default:"—" }}
+                </span>
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">
+                    Email
+                </span>
+
+                <span class="info-value info-email">
+                    {{ tutor.user.email }}
+                </span>
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">
+                    Phone
+                </span>
+
+                <span class="info-value">
+                    {{ tutor.phone|default:"—" }}
+                </span>
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">
+                    Teaching Mode
+                </span>
+
+                <span class="info-value">
+                    <span class="badge badge-{{ tutor.mode }}">
+                        {{ tutor.get_mode_display }}
+                    </span>
+                </span>
+            </div>
+
+
+            <div class="info-row">
+                <span class="info-label">
+                    Joined
+                </span>
+
+                <span class="info-value">
+                    {{ tutor.created_at|date:"M d, Y" }}
+                </span>
+            </div>
+
+        </div>
+
     </div>
-    {% empty %}<div class="text-muted text-sm">No classes this week.</div>{% endfor %}
-  </div>
+
+
+    <!-- Weekly Schedule -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div>
+                <div class="card-title">
+                    This Week's Schedule
+                </div>
+
+                <div class="text-muted text-sm">
+                    Upcoming classes assigned to this tutor
+                </div>
+            </div>
+
+            <span class="tag">
+                {{ week_classes|length }} class{{ week_classes|length|pluralize }}
+            </span>
+
+        </div>
+
+
+        <div class="schedule-list">
+
+            {% for cls in week_classes %}
+
+            <div class="schedule-item">
+
+                <div class="schedule-date">
+                    <span class="schedule-day">
+                        {{ cls.date|date:"d" }}
+                    </span>
+
+                    <span class="schedule-month">
+                        {{ cls.date|date:"M" }}
+                    </span>
+                </div>
+
+
+                <div class="schedule-info">
+
+                    <div class="schedule-course">
+                        {{ cls.course.name }}
+                    </div>
+
+                    <div class="schedule-time">
+                        {{ cls.date|date:"D, M d" }}
+
+                        {% if cls.start_time %}
+                            · {{ cls.start_time|time:"H:i" }}
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="empty-state schedule-empty">
+                <div class="icon">📅</div>
+                <p>No classes this week.</p>
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
 </div>
+
+
+<!-- ==========================================
+     STUDENTS + REPORTS
+     ========================================== -->
+
 <div class="grid-2 gap-4 mb-4">
-  <div class="card">
-    <div class="card-header"><div class="card-title">Students ({{ students.count }})</div></div>
-    {% for s in students %}<div style="display:flex;align-items:center;gap-2;padding:7px 0;border-bottom:1px solid var(--border)"><span class="badge badge-{{ s.mode }}" style="margin-right:8px">{{ s.get_mode_display }}</span>{{ s.name }}</div>{% empty %}<div class="text-muted text-sm">No students.</div>{% endfor %}
-  </div>
-  <div class="card">
-    <div class="card-header"><div class="card-title">Recent Reports</div><a href="{% url 'admin_reports' %}" class="btn btn-ghost btn-sm">All Reports</a></div>
-    {% for r in reports %}<div style="padding:7px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span class="text-sm">{{ r.week_start|date:"M d" }} – {{ r.week_end|date:"M d" }}</span><div class="flex gap-2 items-center"><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span><a href="{% url 'admin_report_detail' r.pk %}" class="btn btn-secondary btn-sm">View</a></div></div>{% empty %}<div class="text-muted text-sm">No reports yet.</div>{% endfor %}
-  </div>
+
+    <!-- Students -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div>
+                <div class="card-title">
+                    Students
+                </div>
+
+                <div class="text-muted text-sm">
+                    Students currently assigned to this tutor
+                </div>
+            </div>
+
+            <span class="tag">
+                {{ students.count }}
+            </span>
+
+        </div>
+
+
+        <div class="student-list">
+
+            {% for s in students %}
+
+            <div class="student-item">
+
+                <div class="student-avatar">
+                    {{ s.name|slice:":1"|upper }}
+                </div>
+
+                <div class="student-info">
+
+                    <div class="student-name">
+                        {{ s.name }}
+                    </div>
+
+                    <div class="student-mode">
+                        {{ s.get_mode_display }}
+                    </div>
+
+                </div>
+
+                <span class="badge badge-{{ s.mode }}">
+                    {{ s.get_mode_display }}
+                </span>
+
+            </div>
+
+            {% empty %}
+
+            <div class="empty-state">
+                <div class="icon">👨‍🎓</div>
+                <p>No students.</p>
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Recent Reports -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div>
+                <div class="card-title">
+                    Recent Reports
+                </div>
+
+                <div class="text-muted text-sm">
+                    Latest submitted tutor reports
+                </div>
+            </div>
+
+            <a href="{% url 'admin_reports' %}"
+               class="btn btn-ghost btn-sm">
+                All Reports
+            </a>
+
+        </div>
+
+
+        <div class="reports-list">
+
+            {% for r in reports %}
+
+            <div class="report-item">
+
+                <div class="report-date">
+
+                    <span class="report-period">
+                        {{ r.week_start|date:"M d" }}
+                        –
+                        {{ r.week_end|date:"M d" }}
+                    </span>
+
+                </div>
+
+
+                <div class="report-actions">
+
+                    <span class="badge badge-{{ r.status }}">
+                        {{ r.get_status_display }}
+                    </span>
+
+                    <a href="{% url 'admin_report_detail' r.pk %}"
+                       class="btn btn-secondary btn-sm">
+                        View
+                    </a>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="empty-state">
+                <div class="icon">📋</div>
+                <p>No reports yet.</p>
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
 </div>
+
+
+<!-- ==========================================
+     PAGE-SPECIFIC STYLES
+     ========================================== -->
+
+<style>
+
+/* ==========================================
+   HEADER
+   ========================================== */
+
+.tutor-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.tutor-profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.tutor-detail-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    font-size: 1.35rem;
+    font-weight: 800;
+
+    color: #07110d;
+
+    box-shadow:
+        0 8px 24px rgba(0,0,0,.18);
+}
+
+.avatar-online {
+    background:
+        linear-gradient(
+            135deg,
+            var(--online),
+            #059669
+        );
+}
+
+.avatar-physical {
+    background:
+        linear-gradient(
+            135deg,
+            var(--physical),
+            #7c3aed
+        );
+}
+
+.tutor-profile-info {
+    min-width: 0;
+}
+
+.tutor-profile-info .page-title {
+    margin-bottom: 8px;
+}
+
+.tutor-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tutor-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tutor-detail-actions form {
+    margin: 0;
+}
+
+
+/* ==========================================
+   APPROVAL CARD
+   ========================================== */
+
+.approval-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 16px 18px;
+    margin-bottom: 24px;
+
+    border-radius: var(--radius);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(251,146,60,.09),
+            rgba(251,146,60,.03)
+        );
+
+    border: 1px solid rgba(251,146,60,.28);
+
+    box-shadow:
+        0 6px 20px rgba(251,146,60,.05);
+}
+
+.approval-icon {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(251,146,60,.15);
+    border: 1px solid rgba(251,146,60,.3);
+
+    color: var(--accent3);
+
+    font-weight: 800;
+}
+
+.approval-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.approval-title {
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.approval-content p {
+    color: var(--text);
+    font-size: .78rem;
+}
+
+
+/* ==========================================
+   INFORMATION
+   ========================================== */
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 12px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: var(--text);
+    font-size: .76rem;
+    font-weight: 600;
+
+    text-transform: none;
+    letter-spacing: .05em;
+
+    flex-shrink: 0;
+}
+
+.info-value {
+    text-align: right;
+    font-size: .86rem;
+    font-weight: 500;
+
+    word-break: break-word;
+}
+
+.info-email {
+    color: var(--text);
+}
+
+
+/* ==========================================
+   STATUS DOTS
+   ========================================== */
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+
+    display: inline-block;
+    margin-right: 3px;
+}
+
+.status-dot-active {
+    background: var(--online);
+    box-shadow: 0 0 7px var(--online);
+}
+
+.status-dot-pending {
+    background: var(--accent3);
+    box-shadow: 0 0 7px var(--accent3);
+}
+
+
+/* ==========================================
+   WEEKLY SCHEDULE
+   ========================================== */
+
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 11px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.schedule-item:last-child {
+    border-bottom: none;
+}
+
+.schedule-date {
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background: var(--surface2);
+    border: 1px solid var(--border);
+}
+
+.schedule-day {
+    font-size: .9rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.schedule-month {
+    margin-top: 3px;
+
+    font-size: .58rem;
+    font-weight: 700;
+
+    text-transform: none;
+    color: var(--text);
+}
+
+.schedule-info {
+    min-width: 0;
+}
+
+.schedule-course {
+    font-size: .84rem;
+    font-weight: 700;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.schedule-time {
+    margin-top: 3px;
+
+    color: var(--text);
+    font-size: .72rem;
+}
+
+.schedule-empty {
+    padding: 30px 10px;
+}
+
+
+/* ==========================================
+   STUDENTS
+   ========================================== */
+
+.student-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.student-item:last-child {
+    border-bottom: none;
+}
+
+.student-avatar {
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent2),
+            var(--accent)
+        );
+
+    color: #07110d;
+
+    font-size: .72rem;
+    font-weight: 800;
+}
+
+.student-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.student-name {
+    font-size: .82rem;
+    font-weight: 600;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.student-mode {
+    display: none;
+    color: var(--text);
+    font-size: .68rem;
+}
+
+
+/* ==========================================
+   REPORTS
+   ========================================== */
+
+.reports-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.report-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 11px 0;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.report-item:last-child {
+    border-bottom: none;
+}
+
+.report-period {
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.report-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+
+/* ==========================================
+   MOBILE
+   ========================================== */
+
+@media (max-width: 850px) {
+
+    .tutor-detail-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .tutor-detail-actions {
+        width: 100%;
+    }
+
+    .tutor-detail-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .approval-card {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .approval-card form {
+        width: 100%;
+        margin-left: 52px;
+    }
+
+    .approval-card form .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .tutor-detail-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 13px;
+    }
+
+    .tutor-detail-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .tutor-detail-actions form {
+        display: contents;
+    }
+
+    .tutor-detail-actions .btn:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .approval-card {
+        flex-direction: column;
+    }
+
+    .approval-card form {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .info-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-value {
+        text-align: left;
+    }
+
+    .report-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .report-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+}
+
+</style>
+
 {% endblock %}

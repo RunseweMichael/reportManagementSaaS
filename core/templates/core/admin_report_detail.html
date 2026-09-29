@@ -1,165 +1,905 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}Report Review - Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Reports / Review{% endblock %}
+
 {% block content %}
 
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <h1 class="page-title">Weekly Report Review</h1>
-    <p class="page-sub">
-      {{ report.tutor.name }} &nbsp;·&nbsp;
-      {{ report.week_start|date:"M d" }} – {{ report.week_end|date:"M d, Y" }}
-    </p>
-  </div>
-  <div class="flex gap-2 items-center">
-    <span class="badge badge-{{ report.tutor.mode }}">{{ report.tutor.get_mode_display }}</span>
-    <span class="badge badge-{{ report.status }}">{{ report.get_status_display }}</span>
-  </div>
-</div>
+<style>
+  /* =========================================================
+     REPORT REVIEW
+     ========================================================= */
 
-<!-- ── Top stats ──────────────────────────────────────────────────────────── -->
-<div class="stat-grid" style="margin-bottom:24px">
-  <div class="stat-card" style="--glow-color:var(--accent)">
-    <div class="stat-label">Total Sessions</div>
-    <div class="stat-value">{{ report.classes_held }}</div>
-  </div>
-  <div class="stat-card" style="--glow-color:var(--accent2)">
-    <div class="stat-label">Students Reached</div>
-    <div class="stat-value">{{ report.students_attended }}</div>
-  </div>
-  <div class="stat-card" style="--glow-color:var(--accent3)">
-    <div class="stat-label">Courses Taught</div>
-    <div class="stat-value">{{ course_summary|length }}</div>
-  </div>
-  <div class="stat-card" style="--glow-color:var(--online)">
-  <div class="stat-label">Topics Covered</div>
-  <div class="stat-value">{{ total_topics }}</div>
-</div>
-</div>
+  .report-page {
+    max-width: 1400px;
+  }
 
-<!-- ── Per-course breakdown ───────────────────────────────────────────────── -->
-<div style="margin-bottom:24px">
-  <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:14px">
-    Course Breakdown
-  </h2>
+  /* ---------- Header ---------- */
 
-  {% for c in course_summary %}
-  <div class="card" style="margin-bottom:16px">
+  .report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 26px;
+  }
 
-    <!-- Course header -->
-    <div class="flex justify-between items-center" style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-      <div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem">
-          {{ c.course.name }}
-        </div>
-        <div class="text-muted text-sm" style="margin-top:3px">
-          {{ c.session_count }} session{{ c.session_count|pluralize }} &nbsp;·&nbsp;
-          {{ c.student_count }} student{{ c.student_count|pluralize }} &nbsp;·&nbsp;
-          {{ c.present }}/{{ c.total_att }} present
-        </div>
+  .report-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .report-heading-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(129, 140, 248, .12);
+    border: 1px solid rgba(129, 140, 248, .22);
+    color: var(--accent2);
+    font-size: 1.25rem;
+  }
+
+  .report-heading-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .report-title {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    color: var(--text);
+  }
+
+  .report-subtitle {
+    margin: 5px 0 0;
+    color: var(--text);
+    font-size: .82rem;
+  }
+
+  .report-statuses {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* ---------- Stats ---------- */
+
+  .report-stats {
+    margin-bottom: 30px;
+  }
+
+  .report-stat {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .report-stat::after {
+    content: "";
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    right: -28px;
+    bottom: -35px;
+    border-radius: 50%;
+    background: var(--glow-color);
+    opacity: .07;
+    pointer-events: none;
+  }
+
+  .report-stat .stat-value {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- Section headings ---------- */
+
+  .report-section {
+    margin-bottom: 30px;
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .section-heading-main {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .section-indicator {
+    width: 7px;
+    height: 22px;
+    border-radius: 5px;
+    background: var(--accent2);
+  }
+
+  .section-title {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .section-description {
+    color: var(--text);
+    font-size: .74rem;
+  }
+
+  /* ---------- Course cards ---------- */
+
+  .course-card {
+    margin-bottom: 14px;
+    padding: 20px;
+    transition:
+      border-color .2s ease,
+      transform .2s ease,
+      box-shadow .2s ease;
+  }
+
+  .course-card:hover {
+    border-color: color-mix(in srgb, var(--accent2) 30%, var(--border));
+    box-shadow: 0 8px 28px rgba(0,0,0,.16);
+    transform: translateY(-1px);
+  }
+
+  .course-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .course-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .course-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 1rem;
+  }
+
+  .course-name {
+    font-family: 'Syne', sans-serif;
+    font-size: .98rem;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .course-meta {
+    margin-top: 4px;
+    color: var(--text);
+    font-size: .73rem;
+  }
+
+  .attendance-score {
+    text-align: right;
+    flex: 0 0 auto;
+  }
+
+  .attendance-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .attendance-label {
+    margin-top: 4px;
+    color: var(--text);
+    font-size: .68rem;
+    text-transform: none;
+    letter-spacing: .05em;
+  }
+
+  .attendance-progress {
+    height: 7px;
+    margin-bottom: 18px;
+  }
+
+  /* ---------- Course details ---------- */
+
+  .course-details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 26px;
+  }
+
+  .detail-label {
+    margin-bottom: 9px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: .68rem;
+    font-weight: 800;
+    text-transform: none;
+    letter-spacing: .07em;
+  }
+
+  .topic-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .topic-list .tag {
+    margin: 0 !important;
+  }
+
+  .no-data {
+    color: var(--text);
+    font-size: .78rem;
+    font-style: italic;
+  }
+
+  /* ---------- Session list ---------- */
+
+  .session-list {
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+  }
+
+  .session-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 9px 11px;
+    background: var(--surface);
+    font-size: .76rem;
+  }
+
+  .session-row + .session-row {
+    border-top: 1px solid var(--border);
+  }
+
+  .session-row:hover {
+    background: var(--surface2);
+  }
+
+  .session-date {
+    color: var(--text);
+  }
+
+  .session-topic {
+    color: var(--text);
+  }
+
+  .session-attendance {
+    flex: 0 0 auto;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 700;
+  }
+
+  /* ---------- Empty state ---------- */
+
+  .report-empty {
+    padding: 32px 20px;
+    text-align: center;
+  }
+
+  .report-empty-icon {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 11px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+
+  .report-empty-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .report-empty-text {
+    margin-top: 4px;
+    color: var(--text);
+    font-size: .75rem;
+  }
+
+  /* ---------- Tutor report ---------- */
+
+  .narrative-card {
+    margin-bottom: 30px;
+  }
+
+  .card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-heading-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(110, 231, 183, .1);
+    color: var(--accent);
+    font-size: .85rem;
+  }
+
+  .card-heading-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .narrative-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 26px;
+  }
+
+  .narrative-item {
+    padding: 14px;
+    border-radius: 9px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .narrative-item.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .narrative-label {
+    margin-bottom: 7px;
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: .06em;
+  }
+
+  .narrative-text {
+    margin: 0;
+    color: var(--text);
+    font-size: .82rem;
+    line-height: 1.65;
+    white-space: pre-line;
+  }
+
+  /* ---------- Admin feedback ---------- */
+
+  .feedback-card {
+    max-width: 720px;
+    margin-bottom: 20px;
+  }
+
+  .feedback-intro {
+    margin: -7px 0 18px;
+    color: var(--text);
+    font-size: .76rem;
+    line-height: 1.5;
+  }
+
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .feedback-form textarea {
+    min-height: 130px;
+    resize: vertical;
+  }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 850px) {
+    .report-header {
+      flex-direction: column;
+    }
+
+    .report-statuses {
+      justify-content: flex-start;
+    }
+
+    .course-details,
+    .narrative-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .narrative-item.full-width {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .report-title {
+      font-size: 1.25rem;
+    }
+
+    .report-heading-icon {
+      width: 40px;
+      height: 40px;
+      flex-basis: 40px;
+    }
+
+    .course-card {
+      padding: 15px;
+    }
+
+    .course-header {
+      align-items: flex-start;
+    }
+
+    .course-identity {
+      min-width: 0;
+    }
+
+    .course-name {
+      white-space: normal;
+    }
+
+    .attendance-score {
+      min-width: 58px;
+    }
+
+    .attendance-number {
+      font-size: 1.15rem;
+    }
+
+    .session-row {
+      align-items: flex-start;
+    }
+
+    .session-attendance {
+      margin-top: 1px;
+    }
+
+    .report-stats {
+      margin-bottom: 24px;
+    }
+  }
+</style>
+
+<div class="report-page">
+
+  <!-- =========================================================
+       REPORT HEADER
+       ========================================================= -->
+  <div class="report-header">
+
+    <div class="report-heading">
+
+      <div class="report-heading-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M8 13h8"/>
+          <path d="M8 17h6"/>
+          <path d="M8 9h2"/>
+        </svg>
       </div>
-      <div style="text-align:right">
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;
-                    color:{% if c.att_rate >= 80 %}var(--accent){% elif c.att_rate >= 60 %}var(--accent3){% else %}var(--warn){% endif %}">
-          {{ c.att_rate }}%
+
+      <div>
+        <h1 class="report-title">Weekly Report Review</h1>
+        <p class="report-subtitle">
+          {{ report.tutor.name }}
+          &nbsp;·&nbsp;
+          {{ report.week_start|date:"M d" }} –
+          {{ report.week_end|date:"M d, Y" }}
+        </p>
+      </div>
+
+    </div>
+
+    <div class="report-statuses">
+      <span class="badge badge-{{ report.tutor.mode }}">
+        {{ report.tutor.get_mode_display }}
+      </span>
+
+      <span class="badge badge-{{ report.status }}">
+        {{ report.get_status_display }}
+      </span>
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       TOP STATS
+       ========================================================= -->
+  <div class="stat-grid report-stats">
+
+    <div class="stat-card report-stat" style="--glow-color:var(--accent)">
+      <div class="stat-label">Total Sessions</div>
+      <div class="stat-value">{{ report.classes_held }}</div>
+    </div>
+
+    <div class="stat-card report-stat" style="--glow-color:var(--accent2)">
+      <div class="stat-label">Students Reached</div>
+      <div class="stat-value">{{ report.students_attended }}</div>
+    </div>
+
+    <div class="stat-card report-stat" style="--glow-color:var(--accent3)">
+      <div class="stat-label">Courses Taught</div>
+      <div class="stat-value">{{ course_summary|length }}</div>
+    </div>
+
+    <div class="stat-card report-stat" style="--glow-color:var(--online)">
+      <div class="stat-label">Topics Covered</div>
+      <div class="stat-value">{{ total_topics }}</div>
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       COURSE BREAKDOWN
+       ========================================================= -->
+  <div class="report-section">
+
+    <div class="section-heading">
+      <div class="section-heading-main">
+        <span class="section-indicator"></span>
+
+        <h2 class="section-title">Course Breakdown</h2>
+      </div>
+
+      <span class="section-description">
+        Attendance and session activity
+      </span>
+    </div>
+
+
+    {% for c in course_summary %}
+
+    <div class="card course-card">
+
+      <!-- Course header -->
+      <div class="course-header">
+
+        <div class="course-identity">
+
+          <div class="course-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+
+          <div>
+            <div class="course-name">
+              {{ c.course.name }}
+            </div>
+
+            <div class="course-meta">
+              {{ c.session_count }} session{{ c.session_count|pluralize }}
+              &nbsp;·&nbsp;
+              {{ c.student_count }} student{{ c.student_count|pluralize }}
+              &nbsp;·&nbsp;
+              {{ c.present }}/{{ c.total_att }} present
+            </div>
+          </div>
+
         </div>
-        <div class="text-muted text-sm">attendance</div>
+
+
+        <div class="attendance-score">
+
+          <div class="attendance-number"
+               style="color:var(--text)">
+            {{ c.att_rate }}%
+          </div>
+
+          <div class="attendance-label">
+            Attendance
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Attendance bar -->
+      <div class="progress-bar attendance-progress">
+        <div class="progress-bar-fill" style="width:{{ c.att_rate }}%"></div>
+      </div>
+
+
+      <!-- Course details -->
+      <div class="course-details">
+
+        <!-- Topics -->
+        <div>
+
+          <div class="detail-label">
+            Topics Covered
+          </div>
+
+          {% if c.topics %}
+
+            <div class="topic-list">
+
+              {% for topic in c.topics %}
+                <span class="tag">{{ topic }}</span>
+              {% endfor %}
+
+            </div>
+
+          {% else %}
+
+            <span class="no-data">
+              No topics recorded
+            </span>
+
+          {% endif %}
+
+        </div>
+
+
+        <!-- Sessions -->
+        <div>
+
+          <div class="detail-label">
+            Session Log
+          </div>
+
+          <div class="session-list">
+
+            {% for session in c.sessions %}
+
+            <div class="session-row">
+
+              <span class="session-date">
+                {{ session.date|date:"D, M d" }}
+
+                {% if session.topic %}
+                  <span class="session-topic">
+                    · {{ session.topic.title }}
+                  </span>
+                {% endif %}
+              </span>
+
+              <span class="session-attendance">
+                {% with s=session.attendance_summary %}
+                  {{ s.present }}/{{ s.total }}
+                {% endwith %}
+              </span>
+
+            </div>
+
+            {% endfor %}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    {% empty %}
+
+    <div class="card">
+      <div class="report-empty">
+
+        <div class="report-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.8" stroke-linecap="round"
+               stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M8 12h8"/>
+          </svg>
+        </div>
+
+        <div class="report-empty-title">
+          No sessions recorded
+        </div>
+
+        <div class="report-empty-text">
+          No sessions were recorded for this week.
+        </div>
+
       </div>
     </div>
 
-    <!-- Attendance bar -->
-    <div class="progress-bar" style="margin-bottom:14px;height:6px">
-      <div class="progress-bar-fill" style="width:{{ c.att_rate }}%"></div>
+    {% endfor %}
+
+  </div>
+
+
+  <!-- =========================================================
+       TUTOR'S REPORT
+       ========================================================= -->
+  <div class="card narrative-card">
+
+    <div class="card-heading">
+
+      <div class="card-heading-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+        </svg>
+      </div>
+
+      <div class="card-heading-title">
+        Tutor's Report
+      </div>
+
     </div>
 
-    <div class="grid-2 gap-4">
 
-      <!-- Topics covered -->
-      <div>
-        <div style="font-size:.75rem;font-family:'Syne',sans-serif;font-weight:700;
-                    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">
+    <div class="narrative-grid">
+
+      <div class="narrative-item">
+
+        <div class="narrative-label">
           Topics Covered
-        </div>
-        {% if c.topics %}
-          {% for topic in c.topics %}
-          <span class="tag" style="display:inline-block;margin:2px">{{ topic }}</span>
-          {% endfor %}
-        {% else %}
-          <span class="text-muted text-sm">No topics recorded</span>
-        {% endif %}
-      </div>
-
-      <!-- Session log -->
-      <div>
-        <div style="font-size:.75rem;font-family:'Syne',sans-serif;font-weight:700;
-                    text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">
-          Sessions
-        </div>
-        {% for session in c.sessions %}
-        <div style="font-size:.8rem;padding:4px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
-          <span>
-            {{ session.date|date:"D, M d" }}
-            {% if session.topic %}<span style="color:var(--muted)"> · {{ session.topic.title }}</span>{% endif %}
-          </span>
-          <span class="text-muted">
-            {% with s=session.attendance_summary %}{{ s.present }}/{{ s.total }}{% endwith %}
+          <span style="text-transform:none;font-weight:500">
+            · tutor's notes
           </span>
         </div>
-        {% endfor %}
+
+        <p class="narrative-text">
+          {{ report.topics_covered|default:"—" }}
+        </p>
+
+      </div>
+
+
+      <div class="narrative-item">
+
+        <div class="narrative-label">
+          Challenges
+        </div>
+
+        <p class="narrative-text">
+          {{ report.challenges|default:"—" }}
+        </p>
+
+      </div>
+
+
+      <div class="narrative-item full-width">
+
+        <div class="narrative-label">
+          Plan for Next Week
+        </div>
+
+        <p class="narrative-text">
+          {{ report.plan_next_week|default:"—" }}
+        </p>
+
       </div>
 
     </div>
-  </div>
-  {% empty %}
-  <div class="card">
-    <div class="empty-state"><p>No sessions recorded for this week.</p></div>
-  </div>
-  {% endfor %}
-</div>
 
-<!-- ── Tutor narrative ────────────────────────────────────────────────────── -->
-<div class="card" style="margin-bottom:24px">
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;
-              margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-    Tutor's Report
   </div>
-  <div class="grid-2 gap-4">
-    <div>
-      <div class="form-label">Topics Covered <span class="text-muted text-sm">(tutor's notes)</span></div>
-      <p style="font-size:.9rem;line-height:1.6">{{ report.topics_covered|default:"—" }}</p>
-    </div>
-    <div>
-      <div class="form-label">Challenges</div>
-      <p style="font-size:.9rem;line-height:1.6">{{ report.challenges|default:"—" }}</p>
-    </div>
-    <div>
-      <div class="form-label">Plan for Next Week</div>
-      <p style="font-size:.9rem;line-height:1.6">{{ report.plan_next_week|default:"—" }}</p>
-    </div>
-  </div>
-</div>
 
-<!-- ── Admin feedback ─────────────────────────────────────────────────────── -->
-<div class="card" style="max-width:640px">
-  <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;
-              margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-    Admin Feedback
+
+  <!-- =========================================================
+       ADMIN FEEDBACK
+       ========================================================= -->
+  <div class="card feedback-card">
+
+    <div class="card-heading">
+
+      <div class="card-heading-icon"
+           style="background:rgba(129,140,248,.1);color:var(--accent2)">
+
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+          <path d="M8 10h8"/>
+          <path d="M8 14h5"/>
+        </svg>
+
+      </div>
+
+      <div class="card-heading-title">
+        Admin Feedback
+      </div>
+
+    </div>
+
+
+    <p class="feedback-intro">
+      Review the tutor's submission, add any necessary feedback,
+      and update the report status.
+    </p>
+
+
+    <form method="post" class="feedback-form">
+
+      {% csrf_token %}
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Feedback
+        </label>
+
+        {{ form.admin_feedback }}
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Status
+        </label>
+
+        {{ form.status }}
+
+      </div>
+
+
+      <div class="form-actions">
+
+        <button type="submit" class="btn btn-primary">
+          <span>Save Feedback</span>
+        </button>
+
+        <a href="{% url 'admin_reports' %}" class="btn btn-ghost">
+          ← Back to Reports
+        </a>
+
+      </div>
+
+    </form>
+
   </div>
-  <form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-      <label class="form-label">Feedback</label>
-      {{ form.admin_feedback }}
-    </div>
-    <div class="form-group">
-      <label class="form-label">Status</label>
-      {{ form.status }}
-    </div>
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Feedback</button>
-      <a href="{% url 'admin_reports' %}" class="btn btn-ghost">← Back to Reports</a>
-    </div>
-  </form>
+
 </div>
 
 {% endblock %}

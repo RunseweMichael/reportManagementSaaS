@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Count, Q
 from django.http import JsonResponse
+from django.core.mail import send_mail
 from datetime import date, timedelta
 from django.contrib.auth.models import User
 import secrets
@@ -184,6 +185,32 @@ def admin_sync_students(request):
             messages.success(request, f"Sync complete — {created} created, {updated} updated.")
         except Exception as e:
             messages.error(request, f"Sync failed: {e}")
+    return redirect('admin_students')
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_student_mark_completed(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == 'POST':
+        student.completed = True
+        student.completed_at = timezone.now()
+        student.active = False
+        student.save(update_fields=['completed', 'completed_at', 'active'])
+        messages.success(request, f"{student.name} marked as completed.")
+    return redirect('admin_students')
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_student_reactivate(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    if request.method == 'POST':
+        student.completed = False
+        student.completed_at = None
+        student.active = True
+        student.save(update_fields=['completed', 'completed_at', 'active'])
+        messages.success(request, f"{student.name} reactivated.")
     return redirect('admin_students')
 
 
@@ -947,22 +974,31 @@ def admin_tutor_reset_password(request, pk):
 
 
 # ─── Admin: Students ──────────────────────────────────────────────────────────
-
 @login_required
 @user_passes_test(is_admin)
 def admin_students(request):
-    mode_filter  = request.GET.get('mode', '')
-    tutor_filter = request.GET.get('tutor', '')
+    mode_filter   = request.GET.get('mode', '')
+    tutor_filter  = request.GET.get('tutor', '')
+    status_filter = request.GET.get('status', '')
+
     students = Student.objects.select_related('tutor').prefetch_related('courses', 'classrooms')
+
     if mode_filter:
         students = students.filter(mode=mode_filter)
     if tutor_filter:
         students = students.filter(tutor_id=tutor_filter)
+
+    if status_filter == 'completed':
+        students = students.filter(completed=True)
+    else:
+        students = students.exclude(completed=True)  # hide completed by default
+
     return render(request, 'core/admin_students.html', {
-        'students':     students,
-        'mode_filter':  mode_filter,
-        'tutor_filter': tutor_filter,
-        'tutors':       Tutor.objects.filter(active=True),
+        'students':      students,
+        'mode_filter':   mode_filter,
+        'tutor_filter':  tutor_filter,
+        'status_filter': status_filter,
+        'tutors':        Tutor.objects.filter(active=True),
     })
 
 
@@ -1575,20 +1611,58 @@ def tutor_register(request):
     return render(request, 'core/tutor_register.html', {'form': form})
 
 
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404, redirect, render
+
 @login_required
 @user_passes_test(is_admin)
 def admin_tutor_approve(request, pk):
     tutor = get_object_or_404(Tutor, pk=pk)
+
     if request.method == 'POST':
-        tutor.is_approved    = True
+
+        # Approve tutor
+        tutor.is_approved = True
+
+        # Allow the tutor to log in
         tutor.user.is_active = True
         tutor.user.save()
+
         tutor.save()
-        messages.success(request, f"{tutor.name} has been approved and can now log in.")
+
+        # Send approval email
+        if tutor.user.email:
+            send_mail(
+                subject='Your Tutor Registration Has Been Approved',
+                message=(
+                    f"Hello {tutor.user.first_name},\n\n"
+                    "Good news! Your registration as a tutor at "
+                    "Parach ICT Academy has been approved.\n\n"
+                    "You can now log in to your Tutor Management System "
+                    "account using the username and password you created "
+                    "during registration.\n\n"
+                    "If you have any questions or experience any issues "
+                    "logging in, please contact the administrator.\n\n"
+                    "Welcome to the team!\n\n"
+                    "Parach ICT Academy"
+                ),
+                from_email=None,
+                recipient_list=[tutor.user.email],
+                fail_silently=False,
+            )
+
+        messages.success(
+            request,
+            f"{tutor.name} has been approved and can now log in."
+        )
+
         return redirect('admin_tutor_detail', pk=pk)
+
     return render(request, 'core/confirm_action.html', {
         'message': f"Approve {tutor.name} and grant login access?",
-        'back':    'admin_tutors',
+        'back': 'admin_tutors',
     })
 
 
@@ -2059,3 +2133,41 @@ def admin_classroom_manage_students(request, pk):
     return render(request, 'core/admin_classroom_manage_students.html', {
         'classroom': classroom, 'available_students': available,
     })
+
+
+
+
+
+from django.shortcuts import render
+
+
+def custom_bad_request(request, exception):
+    return render(
+        request,
+        'core/400.html',
+        status=400
+    )
+
+
+def custom_permission_denied(request, exception):
+    return render(
+        request,
+        'core/403.html',
+        status=403
+    )
+
+
+def custom_page_not_found(request, exception):
+    return render(
+        request,
+        'core/404.html',
+        status=404
+    )
+
+
+def custom_server_error(request):
+    return render(
+        request,
+        'core/500.html',
+        status=500
+    )

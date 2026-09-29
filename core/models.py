@@ -108,6 +108,8 @@ class Student(models.Model):
     tutor = models.ForeignKey(Tutor, on_delete=models.SET_NULL, null=True, blank=True, related_name="students")
     mode = models.CharField(max_length=20, choices=MODE_CHOICES, default='physical')
     active = models.BooleanField(default=True)
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
     current_week = models.PositiveIntegerField(default=1)
     enrolled_at = models.DateField(auto_now_add=True)
     notes = models.TextField(blank=True)

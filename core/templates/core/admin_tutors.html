@@ -1,48 +1,412 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}Tutors - Parach ICT Academy{% endblock %}
+
 {% block breadcrumb %}Tutors{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div><h1 class="page-title">Tutors</h1><p class="page-sub">{{ tutors.count }} tutor{{ tutors.count|pluralize }} registered</p></div>
-  <a href="{% url 'admin_tutor_create' %}" class="btn btn-primary">+ Add Tutor</a>
+
+<!-- Page Header -->
+<div class="page-header-row">
+    <div>
+        <h1 class="page-title">Tutors</h1>
+        <p class="page-sub">
+            {{ tutors.count }} tutor{{ tutors.count|pluralize }} registered
+        </p>
+    </div>
+
+    <a href="{% url 'admin_tutor_create' %}" class="btn btn-primary">
+        <span>+</span>
+        Add Tutor
+    </a>
 </div>
-<div class="filter-bar">
-  <a href="{% url 'admin_tutors' %}" class="{% if not mode_filter %}active{% endif %}">All</a>
-  <a href="?mode=online" class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
-  <a href="?mode=physical" class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
+
+
+<!-- Filters -->
+<div class="filter-bar tutor-filters">
+
+    <a href="{% url 'admin_tutors' %}"
+       class="{% if not mode_filter %}active{% endif %}">
+        All
+    </a>
+
+    <a href="?mode=online"
+       class="{% if mode_filter == 'online' %}active{% endif %}">
+        <span>🌐</span>
+        Online
+    </a>
+
+    <a href="?mode=physical"
+       class="{% if mode_filter == 'physical' %}active{% endif %}">
+        <span>🏫</span>
+        Physical
+    </a>
+
 </div>
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Name</th><th>Mode</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-    {% for t in tutors %}
-    <tr>
-      <td><div style="
-    font-weight:600;
-    color:
-    {% if t.mode == 'online' %}
-        var(--online)
-    {% else %}
-        var(--physical)
-    {% endif %};
-">
-    {{ t.user.first_name }} {{ t.user.last_name }}
-</div></td>
-      <td><span class="badge badge-{{ t.mode }}">{{ t.get_mode_display }}</span></td>
-      <!-- <td>{{ t.user.specialization|default:"—" }}</td> -->
-      <!-- <td>{{ t.student_count }}</td> -->
-      <td class="text-muted text-sm">{{ t.user.email }}</td>
-      <td><span class="badge {% if t.active %}badge-active{% else %}badge-inactive{% endif %}">{% if t.active %}Active{% else %}Inactive{% endif %}</span></td>
-      <td><div class="flex gap-2">
-        <a href="{% url 'admin_tutor_detail' t.pk %}" class="btn btn-secondary btn-sm">View</a>
-        <a href="{% url 'admin_tutor_edit' t.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-        <a href="{% url 'admin_tutor_delete' t.pk %}" class="btn btn-danger btn-sm">Del</a>
-      </div></td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="7" class="text-muted" style="text-align:center;padding:32px">No tutors found.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
+
+
+<!-- Tutors Table -->
+<div class="card tutors-card">
+
+    <div class="card-header">
+        <div>
+            <div class="card-title">Tutor Directory</div>
+            <div class="text-muted text-sm">
+                Manage registered tutors and their accounts
+            </div>
+        </div>
+
+        <span class="tag">
+            {{ tutors.count }} total
+        </span>
+    </div>
+
+
+    <div class="table-wrap">
+        <table class="tutors-table">
+
+            <thead>
+                <tr>
+                    <th>Tutor</th>
+                    <th>Mode</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for t in tutors %}
+
+            <tr>
+
+                <!-- Tutor -->
+                <td>
+                    <div class="tutor-name">
+                        <div class="tutor-avatar">
+                            {{ t.user.first_name|first|upper }}{{ t.user.last_name|first|upper }}
+                        </div>
+
+                        <div>
+                            <div class="tutor-full-name
+                                {% if t.mode == 'online' %}
+                                    online-name
+                                {% else %}
+                                    physical-name
+                                {% endif %}
+                            ">
+                                {{ t.user.first_name }} {{ t.user.last_name }}
+                            </div>
+
+                            <div class="tutor-label">
+                                Tutor
+                            </div>
+                        </div>
+                    </div>
+                </td>
+
+
+                <!-- Mode -->
+                <td>
+                    <span class="badge badge-{{ t.mode }}">
+                        {% if t.mode == 'online' %}
+                            🌐
+                        {% else %}
+                            🏫
+                        {% endif %}
+                        {{ t.get_mode_display }}
+                    </span>
+                </td>
+
+
+                <!-- Email -->
+                <td>
+                    <div class="tutor-email">
+                        {{ t.user.email }}
+                    </div>
+                </td>
+
+                <!-- Actions -->
+                <td>
+                    <div class="tutor-actions">
+
+                        <a href="{% url 'admin_tutor_detail' t.pk %}"
+                           class="btn btn-secondary btn-sm">
+                            View
+                        </a>
+
+                        <a href="{% url 'admin_tutor_edit' t.pk %}"
+                           class="btn btn-ghost btn-sm">
+                            Edit
+                        </a>
+
+                        <a href="{% url 'admin_tutor_delete' t.pk %}"
+                           class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+
+                    </div>
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state tutor-empty">
+                        <div class="icon">👨‍🏫</div>
+                        <h3>No tutors found</h3>
+                        <p>
+                            There are currently no tutors matching your filter.
+                        </p>
+
+                        <a href="{% url 'admin_tutor_create' %}"
+                           class="btn btn-primary"
+                           style="margin-top:16px;">
+                            + Add First Tutor
+                        </a>
+                    </div>
+                </td>
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
 </div>
+
+
+<style>
+/* ==========================================
+   TUTORS PAGE
+   ========================================== */
+
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.page-header-row .btn {
+    white-space: nowrap;
+}
+
+
+/* Filter buttons */
+
+.tutor-filters {
+    margin-bottom: 20px;
+}
+
+.tutor-filters a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* Main card */
+
+.tutors-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.tutors-card .card-header {
+    padding: 20px 22px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.tutors-card .table-wrap {
+    border: 0;
+    border-radius: 0;
+}
+
+
+/* Tutor identity */
+
+.tutor-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 190px;
+}
+
+.tutor-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            var(--accent2)
+        );
+
+    color: #07110d;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,.15);
+}
+
+.tutor-full-name {
+    font-weight: 700;
+    font-size: .88rem;
+    line-height: 1.3;
+}
+
+.online-name {
+    color: var(--text);
+}
+
+.physical-name {
+    color: var(--text);
+}
+
+.tutor-label {
+    margin-top: 2px;
+    color: var(--text);
+    font-size: .68rem;
+}
+
+
+/* Email */
+
+.tutor-email {
+    color: var(--text);
+    font-size: .8rem;
+    word-break: break-word;
+}
+
+
+/* Status */
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot-active {
+    background: var(--online);
+    box-shadow: 0 0 7px var(--online);
+}
+
+.status-dot-inactive {
+    background: var(--warn);
+}
+
+
+/* Actions */
+
+.tutor-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+
+/* Table hover */
+
+.tutors-table tbody tr {
+    transition:
+        background .15s ease,
+        transform .15s ease;
+}
+
+.tutors-table tbody tr:hover {
+    background: rgba(127,127,127,.035);
+}
+
+.tutors-table td {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+
+/* Empty state */
+
+.tutor-empty {
+    padding: 60px 24px;
+}
+
+.tutor-empty h3 {
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: var(--text);
+}
+
+.tutor-empty p {
+    color: var(--text);
+    font-size: .82rem;
+}
+
+
+/* Mobile */
+
+@media (max-width: 760px) {
+
+    .page-header-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .page-header-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tutors-card .card-header {
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .tutor-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tutor-actions .btn {
+        justify-content: center;
+    }
+
+}
+
+@media (max-width: 520px) {
+
+    .tutors-card .card-header {
+        flex-direction: column;
+    }
+
+    .tutor-filters {
+        width: 100%;
+    }
+
+    .tutor-filters a {
+        flex: 1;
+        justify-content: center;
+    }
+
+}
+</style>
+
 {% endblock %}

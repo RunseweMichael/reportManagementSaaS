@@ -1,36 +1,522 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}Reports - Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Weekly Reports{% endblock %}
+
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-  <div><h1 class="page-title">Weekly Reports</h1><p class="page-sub">Review and give feedback on tutor reports</p></div>
+
+<style>
+  /* =========================================================
+     WEEKLY REPORTS
+     ========================================================= */
+
+  .reports-page {
+    max-width: 1400px;
+  }
+
+  /* ---------- Page header ---------- */
+
+  .reports-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .reports-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .reports-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(129, 140, 248, .12);
+    border: 1px solid rgba(129, 140, 248, .22);
+    color: var(--accent2);
+  }
+
+  .reports-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .reports-title {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+  }
+
+  .reports-subtitle {
+    margin: 5px 0 0;
+    color: var(--text);
+    font-size: .82rem;
+  }
+
+  /* ---------- Filters ---------- */
+
+  .reports-filter {
+    margin-bottom: 26px;
+  }
+
+  /* ---------- Week groups ---------- */
+
+  .week-group {
+    margin-bottom: 28px;
+  }
+
+  .week-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 15px 17px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .week-heading {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .week-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: rgba(110, 231, 183, .1);
+    color: var(--accent);
+  }
+
+  .week-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .week-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .92rem;
+    font-weight: 800;
+  }
+
+  .week-label {
+    margin-top: 2px;
+    color: var(--text);
+    font-size: .7rem;
+  }
+
+  .week-summary {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .week-summary-item {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: .68rem;
+    font-weight: 600;
+  }
+
+  .week-summary-item.pending {
+    color: var(--text);
+  }
+
+  /* ---------- Table ---------- */
+
+  .week-table {
+    border: 1px solid var(--border);
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .week-table table {
+    margin: 0;
+  }
+
+  .tutor-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .tutor-avatar {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-family: 'Syne', sans-serif;
+    font-size: .68rem;
+    font-weight: 800;
+  }
+
+  .tutor-name {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .week-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+  }
+
+  .report-topic {
+    max-width: 240px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .report-action {
+    white-space: nowrap;
+  }
+
+  /* ---------- Empty ---------- */
+
+  .reports-empty {
+    padding: 55px 20px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .reports-empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: var(--surface2);
+    color: var(--muted);
+  }
+
+  .reports-empty-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .95rem;
+    font-weight: 800;
+  }
+
+  .reports-empty-text {
+    margin-top: 5px;
+    color: var(--text);
+    font-size: .76rem;
+  }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 800px) {
+    .week-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .week-summary {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .reports-title {
+      font-size: 1.25rem;
+    }
+
+    .reports-icon {
+      width: 40px;
+      height: 40px;
+      flex-basis: 40px;
+    }
+
+    .week-header {
+      padding: 13px;
+    }
+  }
+</style>
+
+
+<div class="reports-page">
+
+  <!-- =======================================================
+       PAGE HEADER
+       ======================================================= -->
+
+  <div class="reports-header">
+
+    <div class="reports-heading">
+
+      <div class="reports-icon">
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M8 13h8"/>
+          <path d="M8 17h6"/>
+        </svg>
+      </div>
+
+      <div>
+        <h1 class="reports-title">Weekly Reports</h1>
+
+        <p class="reports-subtitle">
+          Review and give feedback on tutor reports
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       FILTERS
+       ======================================================= -->
+
+  <div class="filter-bar reports-filter">
+
+    <a href="{% url 'admin_reports' %}"
+       class="{% if not status_filter and not mode_filter %}active{% endif %}">
+      All
+    </a>
+
+    <a href="?status=submitted"
+       class="{% if status_filter == 'submitted' %}active{% endif %}">
+      Pending Review
+    </a>
+
+    <a href="?status=reviewed"
+       class="{% if status_filter == 'reviewed' %}active{% endif %}">
+      Reviewed
+    </a>
+
+    <a href="?mode=online"
+       class="{% if mode_filter == 'online' %}active{% endif %}">
+      🌐 Online
+    </a>
+
+    <a href="?mode=physical"
+       class="{% if mode_filter == 'physical' %}active{% endif %}">
+      🏫 Physical
+    </a>
+
+  </div>
+
+
+  <!-- =======================================================
+       GROUP REPORTS BY WEEK
+       ======================================================= -->
+
+  {% regroup reports by week_start as weekly_reports %}
+
+  {% for week in weekly_reports %}
+
+    <div class="week-group">
+
+      <!-- Week header -->
+      <div class="week-header">
+
+        <div class="week-heading">
+
+          <div class="week-icon">
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+
+          <div>
+
+            <div class="week-title">
+              Week of {{ week.grouper|date:"M d, Y" }}
+            </div>
+
+            <div class="week-label">
+              {{ week.list|length }} report{{ week.list|length|pluralize }}
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="week-summary">
+
+          <span class="week-summary-item">
+            {{ week.list|length }} Tutor{{ week.list|length|pluralize }}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- Reports in this week -->
+      <div class="week-table">
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Tutor</th>
+                <th>Mode</th>
+                <th>Week</th>
+                <th>Classes</th>
+                <th>Students</th>
+                <th>Topics</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {% for r in week.list %}
+
+              <tr>
+
+                <td>
+
+                  <div class="tutor-cell">
+
+                    <div class="tutor-avatar">
+                      {{ r.tutor.name|first|upper }}
+                    </div>
+
+                    <div class="tutor-name">
+                      {{ r.tutor.name }}
+                    </div>
+
+                  </div>
+
+                </td>
+
+                <td>
+                  <span class="badge badge-{{ r.tutor.mode }}">
+                    {{ r.tutor.get_mode_display }}
+                  </span>
+                </td>
+
+                <td class="text-sm">
+                  {{ r.week_start|date:"M d" }}
+                  –
+                  {{ r.week_end|date:"M d, Y" }}
+                </td>
+
+                <td>
+                  <span class="week-number">
+                    {{ r.classes_held }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="week-number">
+                    {{ r.students_attended }}
+                  </span>
+                </td>
+
+                <td class="text-sm report-topic">
+                  {{ r.topics_covered|truncatechars:40|default:"—" }}
+                </td>
+
+                <td>
+                  <span class="badge badge-{{ r.status }}">
+                    {{ r.get_status_display }}
+                  </span>
+                </td>
+
+                <td class="report-action">
+
+                  <a href="{% url 'admin_report_detail' r.pk %}"
+                     class="btn btn-primary btn-sm">
+                    Review
+                  </a>
+
+                </td>
+
+              </tr>
+
+              {% endfor %}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  {% empty %}
+
+    <div class="reports-empty">
+
+      <div class="reports-empty-icon">
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <line x1="8" y1="13" x2="16" y2="13"/>
+          <line x1="8" y1="17" x2="13" y2="17"/>
+        </svg>
+      </div>
+
+      <div class="reports-empty-title">
+        No reports found
+      </div>
+
+      <div class="reports-empty-text">
+        There are no weekly reports matching the selected filter.
+      </div>
+
+    </div>
+
+  {% endfor %}
+
 </div>
-<div class="filter-bar">
-  <a href="{% url 'admin_reports' %}" class="{% if not status_filter and not mode_filter %}active{% endif %}">All</a>
-  <a href="?status=submitted" class="{% if status_filter == 'submitted' %}active{% endif %}">Pending Review</a>
-  <a href="?status=reviewed" class="{% if status_filter == 'reviewed' %}active{% endif %}">Reviewed</a>
-  <a href="?mode=online" class="{% if mode_filter == 'online' %}active{% endif %}">🌐 Online</a>
-  <a href="?mode=physical" class="{% if mode_filter == 'physical' %}active{% endif %}">🏫 Physical</a>
-</div>
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Tutor</th><th>Mode</th><th>Week</th><th>Classes</th><th>Students</th><th>Topics</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-    {% for r in reports %}
-    <tr>
-      <td><div style="font-weight:600">{{ r.tutor.name }}</div></td>
-      <td><span class="badge badge-{{ r.tutor.mode }}">{{ r.tutor.get_mode_display }}</span></td>
-      <td>{{ r.week_start|date:"M d" }} – {{ r.week_end|date:"M d, Y" }}</td>
-      <td>{{ r.classes_held }}</td>
-      <td>{{ r.students_attended }}</td>
-      <td class="text-sm">{{ r.topics_covered|truncatechars:40|default:"—" }}</td>
-      <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
-      <td><a href="{% url 'admin_report_detail' r.pk %}" class="btn btn-primary btn-sm">Review</a></td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="8" class="text-muted" style="text-align:center;padding:32px">No reports found.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+
 {% endblock %}

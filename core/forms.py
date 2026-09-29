@@ -240,8 +240,6 @@ class TutorTimetableEntryForm(forms.ModelForm):
 
     def __init__(self, tutor=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if tutor:
-            self.fields['students'].queryset = Student.objects.filter(tutor=tutor)
         
         # If tutor is online, hide location entirely
         if tutor and tutor.mode == 'online':
@@ -339,3 +337,55 @@ class TutorRegistrationForm(forms.Form):
         if p1 and p2 and p1 != p2:
             raise forms.ValidationError("Passwords do not match.")
         return cleaned
+
+
+
+
+
+
+from django.contrib.auth.forms import PasswordResetForm
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        subject = render_to_string(
+            subject_template_name,
+            context
+        ).strip()
+
+        # Render the HTML email
+        html_message = render_to_string(
+            html_email_template_name,
+            context
+        )
+
+        # Plain-text fallback
+        text_message = render_to_string(
+            'core/password_reset_email.html',
+            context
+        )
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_message,
+            from_email=from_email,
+            to=[to_email],
+        )
+
+        email.attach_alternative(
+            html_message,
+            "text/html"
+        )
+
+        email.send()

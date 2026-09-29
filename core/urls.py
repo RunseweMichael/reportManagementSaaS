@@ -1,4 +1,6 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
+from .forms import CustomPasswordResetForm
 from . import views
 
 urlpatterns = [
@@ -136,4 +138,45 @@ urlpatterns = [
     path('api/modules/<int:module_pk>/topics/', views.api_module_topics, name='api_module_topics'),
 
     path('tutor/courses/<int:course_pk>/topics/<int:pk>/delete/', views.tutor_orphan_topic_delete, name='tutor_orphan_topic_delete'),
+    
+    path('students/<int:pk>/mark_completed/', views.admin_student_mark_completed, name='admin_student_mark_completed'),
+    path('students/<int:pk>/reactivate/', views.admin_student_reactivate, name='admin_student_reactivate'),
+
+
+    # forgot password reset
+    path(
+        'forgot-password/',
+        auth_views.PasswordResetView.as_view(
+            form_class=CustomPasswordResetForm,
+            template_name='core/forgot_password.html',
+            email_template_name='core/password_reset_email.html',
+            subject_template_name='core/password_reset_subject.txt',
+            html_email_template_name='core/password_reset_email.html',
+        ),
+        name='password_reset'
+    ),
+
+    path(
+        'forgot-password/sent/',
+        auth_views.PasswordResetDoneView.as_view(
+            template_name='core/password_reset_sent.html'
+        ),
+        name='password_reset_done',
+    ),
+
+    path(
+        'reset-password/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name='core/password_reset_confirm.html'
+        ),
+        name='password_reset_confirm',
+    ),
+
+    path(
+        'reset-password/complete/',
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name='core/password_reset_complete.html'
+        ),
+        name='password_reset_complete',
+    ),
 ]

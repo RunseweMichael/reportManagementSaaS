@@ -1,188 +1,1246 @@
 {% extends "core/admin_base.html" %}
+
 {% block title %}{{ student.name }} - Parach ICT Academy{% endblock %}
 {% block breadcrumb %}Students / {{ student.name }}{% endblock %}
+
 {% block content %}
 
-<div class="flex justify-between items-center mb-6">
-  <div>
-    <div class="flex items-center gap-3" style="margin-bottom:6px">
-      <div class="user-avatar" style="width:44px;height:44px;font-size:1.1rem;background:linear-gradient(135deg,var(--accent2),#6366f1)">
+<style>
+  /* =========================================================
+     STUDENT DETAIL PAGE
+     ========================================================= */
+
+  .student-page {
+    max-width: 1400px;
+  }
+
+  /* ---------- Student header ---------- */
+
+  .student-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 26px;
+  }
+
+  .student-identity {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .student-avatar-large {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent2), #6366f1);
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    box-shadow: 0 8px 22px rgba(99, 102, 241, .18);
+  }
+
+  .student-name {
+    margin: 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -.025em;
+    color: var(--text);
+  }
+
+  .student-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
+  .student-subtitle {
+    margin: 7px 0 0;
+    color: var(--text);
+    font-size: .78rem;
+  }
+
+  .student-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .generate-report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ---------- Stats ---------- */
+
+  .student-stats {
+    margin-bottom: 20px;
+  }
+
+  .student-stat {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .student-stat::after {
+    content: "";
+    position: absolute;
+    width: 85px;
+    height: 85px;
+    right: -28px;
+    bottom: -35px;
+    border-radius: 50%;
+    background: var(--glow-color);
+    opacity: .07;
+    pointer-events: none;
+  }
+
+  /* ---------- Attendance overview ---------- */
+
+  .attendance-overview {
+    margin-bottom: 22px;
+  }
+
+  .attendance-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+  }
+
+  .attendance-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .attendance-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(110, 231, 183, .1);
+    color: var(--accent);
+  }
+
+  .attendance-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .attendance-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 800;
+  }
+
+  .attendance-result {
+    text-align: right;
+  }
+
+  .attendance-percentage {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .attendance-description {
+    margin-top: 2px;
+    color: var(--text);
+    font-size: .68rem;
+  }
+
+  .attendance-progress {
+    height: 10px;
+  }
+
+  /* ---------- Main information grid ---------- */
+
+  .student-info-grid {
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  /* ---------- Card headings ---------- */
+
+  .student-card {
+    min-width: 0;
+  }
+
+  .student-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .student-card-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--surface2);
+    color: var(--accent2);
+  }
+
+  .student-card-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .student-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .92rem;
+    font-weight: 800;
+  }
+
+  /* ---------- Student info ---------- */
+
+  .info-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-row {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 14px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-row:last-child {
+    border-bottom: 0;
+  }
+
+  .info-label {
+    color: var(--text);
+    font-size: .72rem;
+    font-weight: 600;
+  }
+
+  .info-value {
+    min-width: 0;
+    color: var(--text);
+    font-size: .8rem;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .info-value a {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .course-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  /* ---------- Classroom breakdown ---------- */
+
+  .classroom-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .classroom-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .classroom-item:first-child {
+    padding-top: 2px;
+  }
+
+  .classroom-item:last-child {
+    border-bottom: 0;
+    padding-bottom: 2px;
+  }
+
+  .classroom-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 7px;
+  }
+
+  .classroom-info {
+    min-width: 0;
+  }
+
+  .classroom-name {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text);
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .classroom-meta {
+    color: var(--text);
+    font-size: .69rem;
+    line-height: 1.45;
+  }
+
+  .classroom-rate {
+    flex: 0 0 auto;
+    text-align: right;
+  }
+
+  .classroom-rate-number {
+    font-family: 'Syne', sans-serif;
+    font-size: .9rem;
+    font-weight: 800;
+  }
+
+  .classroom-rate-detail {
+    margin-top: 2px;
+    color: var(--text);
+    font-size: .66rem;
+  }
+
+  .classroom-progress {
+    height: 6px;
+  }
+
+  /* ---------- Empty states ---------- */
+
+  .student-empty {
+    padding: 28px 16px;
+    text-align: center;
+  }
+
+  .student-empty-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: var(--surface2);
+    color: var(--muted);
+  }
+
+  .student-empty-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .student-empty-title {
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: .82rem;
+    font-weight: 700;
+  }
+
+  .student-empty-text {
+    margin-top: 4px;
+    color: var(--text);
+    font-size: .7rem;
+  }
+
+  /* ---------- Attendance log ---------- */
+
+  .attendance-log-card {
+    overflow: hidden;
+  }
+
+  .attendance-log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .attendance-log-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .attendance-log-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: rgba(129, 140, 248, .1);
+    color: var(--accent2);
+  }
+
+  .attendance-log-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .attendance-log-title {
+    font-family: 'Syne', sans-serif;
+    font-size: .92rem;
+    font-weight: 800;
+  }
+
+  .attendance-log-subtitle {
+    color: var(--text);
+    font-size: .68rem;
+  }
+
+  .attendance-table-wrap {
+    margin: 0 -20px -20px;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .attendance-table th {
+    white-space: nowrap;
+  }
+
+  .attendance-table td {
+    vertical-align: middle;
+  }
+
+  .attendance-date {
+    white-space: nowrap;
+    font-weight: 600;
+    font-size: .78rem;
+  }
+
+  .attendance-topic {
+    font-size: .78rem;
+    font-weight: 600;
+  }
+
+  .attendance-classroom {
+    color: var(--text);
+    font-size: .76rem;
+  }
+
+  .attendance-note {
+    max-width: 260px;
+    color: var(--text);
+    font-size: .73rem;
+    line-height: 1.45;
+  }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 900px) {
+    .student-header {
+      flex-direction: column;
+    }
+
+    .student-actions {
+      justify-content: flex-start;
+    }
+
+    .student-info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .student-name {
+      font-size: 1.25rem;
+    }
+
+    .student-avatar-large {
+      width: 46px;
+      height: 46px;
+      flex-basis: 46px;
+    }
+
+    .student-actions {
+      width: 100%;
+    }
+
+    .student-actions .btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .attendance-top {
+      align-items: flex-start;
+    }
+
+    .info-row {
+      grid-template-columns: 85px minmax(0, 1fr);
+    }
+
+    .classroom-main {
+      align-items: flex-start;
+    }
+
+    .attendance-log-card {
+      padding-bottom: 20px;
+    }
+
+    .attendance-table-wrap {
+      margin-left: -15px;
+      margin-right: -15px;
+    }
+  }
+</style>
+
+
+<div class="student-page">
+
+  <!-- =======================================================
+       STUDENT HEADER
+       ======================================================= -->
+
+  <div class="student-header">
+
+    <div class="student-identity">
+
+      <div class="student-avatar-large">
         {{ student.name|slice:":1"|upper }}
       </div>
+
       <div>
-        <h1 class="page-title" style="margin-bottom:0">{{ student.name }}</h1>
-        <div style="display:flex;gap:6px;margin-top:4px">
-          <span class="badge badge-{{ student.mode }}">{{ student.get_mode_display }}</span>
-          <span class="badge {% if student.active %}badge-active{% else %}badge-inactive{% endif %}">
-            {% if student.active %}Active{% else %}Inactive{% endif %}
+
+        <h1 class="student-name">
+          {{ student.name }}
+        </h1>
+
+        <div class="student-meta">
+
+          <span class="badge badge-{{ student.mode }}">
+            {{ student.get_mode_display }}
           </span>
+
+          <span class="badge {% if student.active %}badge-active{% else %}badge-inactive{% endif %}">
+            {% if student.active %}
+              Active
+            {% else %}
+              Inactive
+            {% endif %}
+          </span>
+
           {% if student.tutor %}
-          <span class="badge badge-{{ student.tutor.mode }}" style="background:rgba(129,140,248,.15);color:var(--accent2);border-color:rgba(129,140,248,.3)">
+
+          <span class="badge badge-{{ student.tutor.mode }}"
+                style="background:rgba(129,140,248,.15);
+                       color:var(--text);
+                       border-color:rgba(129,140,248,.3)">
             {{ student.tutor.name }}
           </span>
+
+          {% endif %}
+
+        </div>
+
+        <p class="student-subtitle">
+          Enrolled {{ student.enrolled_at|date:"M d, Y" }}
+          · Week {{ student.current_week }}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- Actions -->
+
+    <div class="student-actions">
+
+      <a href="{% url 'admin_student_edit' student.pk %}"
+         class="btn btn-secondary">
+        Edit
+      </a>
+
+      <a href="{% url 'admin_student_delete' student.pk %}"
+         class="btn btn-danger">
+        Delete
+      </a>
+
+      <a href="{% url 'admin_student_report' student.pk %}"
+         class="btn btn-primary generate-report-btn"
+         target="_blank">
+        <span>📄</span>
+        <span>Generate Report</span>
+      </a>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       ATTENDANCE STATS
+       ======================================================= -->
+
+  <div class="stat-grid student-stats">
+
+    <div class="stat-card student-stat"
+         style="--glow-color:var(--accent)">
+
+      <div class="stat-label">
+        Total Sessions
+      </div>
+
+      <div class="stat-value">
+        {{ total_att }}
+      </div>
+
+    </div>
+
+
+    <div class="stat-card student-stat"
+         style="--glow-color:var(--online)">
+
+      <div class="stat-label">
+        Present
+      </div>
+
+      <div class="stat-value"
+           style="color:var(--text)">
+        {{ present_att }}
+      </div>
+
+    </div>
+
+
+    <div class="stat-card student-stat"
+         style="--glow-color:var(--warn)">
+
+      <div class="stat-label">
+        Absent
+      </div>
+
+      <div class="stat-value"
+           style="color:var(--text)">
+        {{ absent_att }}
+      </div>
+
+    </div>
+
+
+    <div class="stat-card student-stat"
+         style="--glow-color:var(--accent2)">
+
+      <div class="stat-label">
+        Attendance Rate
+      </div>
+
+      <div class="stat-value">
+        {{ att_rate }}%
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       OVERALL ATTENDANCE
+       ======================================================= -->
+
+  <div class="card attendance-overview">
+
+    <div class="attendance-top">
+
+      <div class="attendance-heading">
+
+        <div class="attendance-icon">
+          <svg viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.8"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        </div>
+
+        <div class="attendance-title">
+          Overall Attendance
+        </div>
+
+      </div>
+
+
+      <div class="attendance-result">
+
+        <div class="attendance-percentage"
+             style="color:var(--text)">
+          {{ att_rate }}%
+        </div>
+
+        <div class="attendance-description">
+          {% if att_rate >= 80 %}
+            Excellent
+          {% elif att_rate >= 60 %}
+            Good
+          {% else %}
+            Needs Improvement
           {% endif %}
         </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="progress-bar attendance-progress">
+      <div class="progress-bar-fill"
+           style="width:{{ att_rate }}%">
       </div>
     </div>
-    <p class="page-sub">Enrolled {{ student.enrolled_at|date:"M d, Y" }} · Week {{ student.current_week }}</p>
+
   </div>
-  <div class="flex gap-2">
-    <a href="{% url 'admin_student_edit' student.pk %}"   class="btn btn-secondary">Edit</a>
-    <a href="{% url 'admin_student_delete' student.pk %}" class="btn btn-danger">Delete</a>
-    <a href="{% url 'admin_student_report' student.pk %}"
-   class="btn btn-primary btn-sm"
-   target="_blank">📄 Generate Report</a>
-  </div>
-</div>
 
 
-<!-- Stats -->
-<div class="stat-grid" style="margin-bottom:20px">
-  <div class="stat-card" style="--glow-color:var(--accent)">
-    <div class="stat-label">Total Sessions</div><div class="stat-value">{{ total_att }}</div>
-  </div>
-  <div class="stat-card" style="--glow-color:var(--online)">
-    <div class="stat-label">Present</div>
-    <div class="stat-value" style="-webkit-text-fill-color:var(--accent)">{{ present_att }}</div>
-  </div>
-  <div class="stat-card" style="--glow-color:var(--warn)">
-    <div class="stat-label">Absent</div>
-    <div class="stat-value" style="-webkit-text-fill-color:var(--warn)">{{ absent_att }}</div>
-  </div>
-  <div class="stat-card" style="--glow-color:var(--accent2)">
-    <div class="stat-label">Attendance Rate</div><div class="stat-value">{{ att_rate }}%</div>
-  </div>
-</div>
+  <!-- =======================================================
+       INFORMATION + CLASSROOM BREAKDOWN
+       ======================================================= -->
 
-<!-- Attendance bar -->
-<div class="card" style="margin-bottom:20px">
-  <div class="flex justify-between text-sm" style="margin-bottom:8px">
-    <span style="font-family:'Syne',sans-serif;font-weight:700">Overall Attendance</span>
-    <span style="color:{% if att_rate >= 80 %}var(--accent){% elif att_rate >= 60 %}var(--accent3){% else %}var(--warn){% endif %};font-weight:600">
-      {{ att_rate }}% — {% if att_rate >= 80 %}Excellent{% elif att_rate >= 60 %}Good{% else %}Needs Improvement{% endif %}
-    </span>
-  </div>
-  <div class="progress-bar" style="height:10px">
-    <div class="progress-bar-fill" style="width:{{ att_rate }}%"></div>
-  </div>
-</div>
+  <div class="student-info-grid">
 
-<div class="grid-2 gap-4" style="margin-bottom:20px">
 
-  <!-- Info -->
-  <div class="card">
-    <div class="card-title" style="margin-bottom:16px">Student Info</div>
-    <table style="border:none;width:100%"><tbody>
-      <tr><td class="text-muted text-sm" style="padding:7px 0;width:110px">Email</td><td>{{ student.email|default:"—" }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:7px 0">Phone</td><td>{{ student.phone|default:"—" }}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:7px 0">Tutor</td>
-          <td>{% if student.tutor %}<a href="{% url 'admin_tutor_detail' student.tutor.pk %}" style="color:var(--accent2)">{{ student.tutor.name }}</a>{% else %}—{% endif %}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:7px 0">Courses</td>
-          <td>{% for c in student.courses.all %}<span class="tag">{{ c.name }}</span> {% empty %}—{% endfor %}</td></tr>
-      <tr><td class="text-muted text-sm" style="padding:7px 0">Notes</td><td>{{ student.notes|default:"—" }}</td></tr>
-    </tbody></table>
-  </div>
+    <!-- Student information -->
 
-  <!-- Classroom breakdown -->
-  <div class="card">
-    <div class="card-title" style="margin-bottom:16px">Classroom Breakdown</div>
-    {% if classroom_stats %}
-    {% for stat in classroom_stats %}
-    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
-      <div class="flex justify-between items-center" style="margin-bottom:5px">
-        <div>
-          <a href="{% url 'admin_classroom_detail' stat.classroom.pk %}" style="font-weight:600;font-size:.875rem;color:var(--accent)">
-            {{ stat.classroom.name }}
-          </a>
-          <div class="text-muted text-sm">{{ stat.classroom.course.name }} · {{ stat.sessions }} sessions · {{ stat.classroom.tutor.name }}</div>
+    <div class="card student-card">
+
+      <div class="student-card-heading">
+
+        <div class="student-card-icon">
+          <svg viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.8"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M20 21a8 8 0 0 0-16 0"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
         </div>
-        <div style="text-align:right">
-          <div style="font-weight:700;font-size:.95rem">{{ stat.rate }}%</div>
-          <div class="text-muted text-sm">{{ stat.present }}/{{ stat.total }}</div>
+
+        <div class="student-card-title">
+          Student Info
         </div>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-bar-fill" style="width:{{ stat.rate }}%"></div>
-      </div>
-    </div>
-    {% endfor %}
-    {% else %}
-    <div class="empty-state"><div class="icon">◈</div><p>No classrooms yet.</p></div>
-    {% endif %}
-  </div>
 
-</div>
+      </div>
 
-<!-- Session history
-<div class="card" style="margin-bottom:20px">
-  <div class="card-header"><div class="card-title">Session History ({{ sessions.count }})</div></div>
-  {% if sessions %}
-  <div class="table-wrap" style="border:none">
-    <table>
-      <thead><tr><th>Date</th><th>Classroom</th><th>Tutor</th><th>Topic</th><th>Status</th><th>Note</th></tr></thead>
-      <tbody>
-      {% for session in sessions %}
-      <tr>
-        <td style="white-space:nowrap">
-          <div style="font-weight:600">{{ session.date|date:"M d, Y" }}</div>
-          {% if session.start_time %}<div class="text-muted text-sm">{{ session.start_time|time:"H:i" }}</div>{% endif %}
-        </td>
-        <td>
-          {% if session.classroom %}
-          <a href="{% url 'admin_classroom_detail' session.classroom.pk %}" style="color:var(--accent2)">{{ session.classroom.name }}</a>
-          {% else %}<span class="text-muted">Standalone</span>{% endif %}
-        </td>
-        <td>{{ session.tutor.name }}</td>
-        <td>{{ session.topic.title|default:"—" }}</td>
-        <td>
-          {% for rec in session.attendance_set.all %}
-            {% if rec.student_id == student.pk %}
-            <span class="badge badge-{{ rec.attendance_status|lower }}">{{ rec.attendance_status }}</span>
+
+      <div class="info-list">
+
+        <div class="info-row">
+          <div class="info-label">Email</div>
+
+          <div class="info-value">
+            {{ student.email|default:"—" }}
+          </div>
+        </div>
+
+
+        <div class="info-row">
+          <div class="info-label">Phone</div>
+
+          <div class="info-value">
+            {{ student.phone|default:"—" }}
+          </div>
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Tutor
+          </div>
+
+          <div class="info-value">
+
+            {% if student.tutor %}
+
+              <a href="{% url 'admin_tutor_detail' student.tutor.pk %}">
+                {{ student.tutor.name }}
+              </a>
+
+            {% else %}
+
+              —
+
             {% endif %}
-          {% empty %}
-          <span class="badge badge-draft">No record</span>
-          {% endfor %}
-        </td>
-        <td class="text-muted text-sm">
-          {% for rec in session.attendance_set.all %}{% if rec.student_id == student.pk %}{{ rec.note|default:"—" }}{% endif %}{% endfor %}
-        </td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="empty-state"><div class="icon">◻</div><p>No sessions yet.</p></div>
-  {% endif %}
-</div> -->
 
-<!-- Full attendance log -->
-<div class="card">
-  <div class="card-header"><div class="card-title">Full Attendance Log</div></div>
-  {% if attendance_records %}
-  <div class="table-wrap" style="border:none">
-    <table>
-      <thead><tr><th>Date</th><th>Topic / Session</th><th>Classroom</th><th>Status</th><th>Note</th></tr></thead>
-      <tbody>
-      {% for item in attendance_with_classroom %}
-{% with a=item.record cr=item.display_classroom %}
-<tr>
-  <td style="white-space:nowrap">{{ a.date|date:"M d, Y" }}</td>
-  <td>{{ a.class_instance.topic.title|default:a.class_instance.course.name }}</td>
-  <td>
-    {% if cr %}{{ cr.name }}{% else %}—{% endif %}
-  </td>
-  <td><span class="badge badge-{{ a.attendance_status|lower }}">{{ a.attendance_status }}</span></td>
-  <td class="text-muted text-sm">{{ a.note|default:"—" }}</td>
-</tr>
-{% endwith %}
-{% endfor %}
-      </tbody>
-    </table>
+          </div>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Courses
+          </div>
+
+          <div class="info-value">
+
+            {% if student.courses.all %}
+
+              <div class="course-tags">
+
+                {% for c in student.courses.all %}
+                  <span class="tag">{{ c.name }}</span>
+                {% empty %}
+                  —
+                {% endfor %}
+
+              </div>
+
+            {% else %}
+
+              —
+
+            {% endif %}
+
+          </div>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Notes
+          </div>
+
+          <div class="info-value">
+            {{ student.notes|default:"—" }}
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Classroom breakdown -->
+
+    <div class="card student-card">
+
+      <div class="student-card-heading">
+
+        <div class="student-card-icon">
+          <svg viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.8"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M3 21h18"/>
+            <path d="M5 21V5l7-3 7 3v16"/>
+            <path d="M9 21v-6h6v6"/>
+            <path d="M9 9h.01"/>
+            <path d="M15 9h.01"/>
+            <path d="M9 12h.01"/>
+            <path d="M15 12h.01"/>
+          </svg>
+        </div>
+
+        <div class="student-card-title">
+          Classroom Breakdown
+        </div>
+
+      </div>
+
+
+      {% if classroom_stats %}
+
+        <div class="classroom-list">
+
+          {% for stat in classroom_stats %}
+
+          <div class="classroom-item">
+
+            <div class="classroom-main">
+
+              <div class="classroom-info">
+
+                <a href="{% url 'admin_classroom_detail' stat.classroom.pk %}"
+                   class="classroom-name">
+                  {{ stat.classroom.name }}
+                </a>
+
+                <div class="classroom-meta">
+                  {{ stat.classroom.course.name }}
+                  · {{ stat.sessions }} sessions
+                  · {{ stat.classroom.tutor.name }}
+                </div>
+
+              </div>
+
+
+              <div class="classroom-rate">
+
+                <div class="classroom-rate-number">
+                  {{ stat.rate }}%
+                </div>
+
+                <div class="classroom-rate-detail">
+                  {{ stat.present }}/{{ stat.total }}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="progress-bar classroom-progress">
+
+              <div class="progress-bar-fill"
+                   style="width:{{ stat.rate }}%">
+              </div>
+
+            </div>
+
+          </div>
+
+          {% endfor %}
+
+        </div>
+
+      {% else %}
+
+        <div class="student-empty">
+
+          <div class="student-empty-icon">
+            <svg viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2"/>
+              <path d="M8 8h8"/>
+              <path d="M8 12h5"/>
+            </svg>
+          </div>
+
+          <div class="student-empty-title">
+            No classrooms yet
+          </div>
+
+          <div class="student-empty-text">
+            This student has not been assigned to a classroom.
+          </div>
+
+        </div>
+
+      {% endif %}
+
+    </div>
+
   </div>
-  {% else %}
-  <div class="empty-state"><div class="icon">▤</div><p>No attendance records yet.</p></div>
-  {% endif %}
+
+
+  <!-- =======================================================
+       SESSION HISTORY
+       Currently disabled in the original template.
+       ======================================================= -->
+
+  <!-- Session history
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header">
+      <div class="card-title">Session History ({{ sessions.count }})</div>
+    </div>
+
+    {% if sessions %}
+
+    <div class="table-wrap" style="border:none">
+      <table>
+
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Classroom</th>
+            <th>Tutor</th>
+            <th>Topic</th>
+            <th>Status</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+        {% for session in sessions %}
+
+        <tr>
+
+          <td style="white-space:nowrap">
+
+            <div style="font-weight:600">
+              {{ session.date|date:"M d, Y" }}
+            </div>
+
+            {% if session.start_time %}
+            <div class="text-muted text-sm">
+              {{ session.start_time|time:"H:i" }}
+            </div>
+            {% endif %}
+
+          </td>
+
+          <td>
+
+            {% if session.classroom %}
+
+            <a href="{% url 'admin_classroom_detail' session.classroom.pk %}"
+               style="color:var(--accent2)">
+              {{ session.classroom.name }}
+            </a>
+
+            {% else %}
+
+            <span class="text-muted">
+              Standalone
+            </span>
+
+            {% endif %}
+
+          </td>
+
+          <td>
+            {{ session.tutor.name }}
+          </td>
+
+          <td>
+            {{ session.topic.title|default:"—" }}
+          </td>
+
+          <td>
+
+            {% for rec in session.attendance_set.all %}
+
+              {% if rec.student_id == student.pk %}
+
+              <span class="badge badge-{{ rec.attendance_status|lower }}">
+                {{ rec.attendance_status }}
+              </span>
+
+              {% endif %}
+
+            {% empty %}
+
+            <span class="badge badge-draft">
+              No record
+            </span>
+
+            {% endfor %}
+
+          </td>
+
+          <td class="text-muted text-sm">
+
+            {% for rec in session.attendance_set.all %}
+
+              {% if rec.student_id == student.pk %}
+                {{ rec.note|default:"—" }}
+              {% endif %}
+
+            {% endfor %}
+
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+      </table>
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+      <div class="icon">◻</div>
+      <p>No sessions yet.</p>
+    </div>
+
+    {% endif %}
+
+  </div>
+  -->
+
+
+  <!-- =======================================================
+       FULL ATTENDANCE LOG
+       ======================================================= -->
+
+  <div class="card attendance-log-card">
+
+    <div class="attendance-log-header">
+
+      <div class="attendance-log-heading">
+
+        <div class="attendance-log-icon">
+          <svg viewBox="0 0 24 24"
+               fill="none"
+               stroke="currentColor"
+               stroke-width="1.8"
+               stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M8 6h13"/>
+            <path d="M8 12h13"/>
+            <path d="M8 18h13"/>
+            <path d="M3 6h.01"/>
+            <path d="M3 12h.01"/>
+            <path d="M3 18h.01"/>
+          </svg>
+        </div>
+
+        <div>
+
+          <div class="attendance-log-title">
+            Full Attendance Log
+          </div>
+
+          <div class="attendance-log-subtitle">
+            Complete attendance history for this student
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    {% if attendance_records %}
+
+    <div class="table-wrap attendance-table-wrap">
+
+      <table class="attendance-table">
+
+        <thead>
+
+          <tr>
+            <th>Date</th>
+            <th>Topic / Session</th>
+            <th>Classroom</th>
+            <th>Status</th>
+            <th>Note</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+        {% for item in attendance_with_classroom %}
+
+          {% with a=item.record cr=item.display_classroom %}
+
+          <tr>
+
+            <td class="attendance-date">
+              {{ a.date|date:"M d, Y" }}
+            </td>
+
+
+            <td class="attendance-topic">
+              {{ a.class_instance.topic.title|default:a.class_instance.course.name }}
+            </td>
+
+
+            <td class="attendance-classroom">
+
+              {% if cr %}
+                {{ cr.name }}
+              {% else %}
+                —
+              {% endif %}
+
+            </td>
+
+
+            <td>
+
+              <span class="badge badge-{{ a.attendance_status|lower }}">
+                {{ a.attendance_status }}
+              </span>
+
+            </td>
+
+
+            <td class="attendance-note">
+              {{ a.note|default:"—" }}
+            </td>
+
+          </tr>
+
+          {% endwith %}
+
+        {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="student-empty">
+
+      <div class="student-empty-icon">
+        <svg viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M4 4h16v16H4z"/>
+          <path d="M8 9h8"/>
+          <path d="M8 13h8"/>
+          <path d="M8 17h5"/>
+        </svg>
+      </div>
+
+      <div class="student-empty-title">
+        No attendance records yet
+      </div>
+
+      <div class="student-empty-text">
+        Attendance will appear here once the student attends a session.
+      </div>
+
+    </div>
+
+    {% endif %}
+
+  </div>
+
 </div>
 
 {% endblock %}
